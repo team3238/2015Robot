@@ -1,5 +1,7 @@
 package org.usfirst.frc.team3238.robot;
 
+import java.util.ArrayList;
+
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.Servo;
@@ -16,6 +18,9 @@ public class ToteLifter
     Servo dogOneServo;
     Servo dogTwoServo;
     AnalogInput liftPotentiometer;
+    ArrayList<String> m_fileContents;
+    PIController piControllerLeft;
+    PIController piControllerRight;
 
     double m_collectLiftPosition;
     double m_openDogsLiftPosition;
@@ -27,16 +32,27 @@ public class ToteLifter
     int m_stateIndex;
     String m_stateMode;
     double m_threshold;
+    double m_pConstant;
+    double m_iConstant;
+    boolean totesDropped;
 
     ToteLifter(int liftMotorTalonPort, int servoOnePort, int servoTwoPort,
-            int potentiometerPort)
+            int potentiometerPort, PIController piContLeft,
+            PIController piContRight)
     {
+        m_fileContents = FileReader.readFile("RobotConstants.txt");
+        m_pConstant = Double.parseDouble(m_fileContents.get(2));
+        m_iConstant = Double.parseDouble(m_fileContents.get(2));
+        m_threshold = Double.parseDouble(m_fileContents.get(2));
+        m_openServoPosition = Double.parseDouble(m_fileContents.get(2));
+        m_closeServoPosition = Double.parseDouble(m_fileContents.get(2));
         liftMotorTalon = new CANTalon(liftMotorTalonPort);
         dogOneServo = new Servo(servoOnePort);
         dogTwoServo = new Servo(servoTwoPort);
         liftPotentiometer = new AnalogInput(potentiometerPort);
         m_potValue = liftPotentiometer.getValue();
-        m_threshold = 0.05;
+        piControllerLeft = piContLeft;
+        piControllerRight = piContRight;
 
     }
 
@@ -47,6 +63,7 @@ public class ToteLifter
     {
         m_stateIndex = -1;
         m_stateMode = "Nothing";
+        totesDropped = false;
     }
 
     /**
@@ -102,6 +119,8 @@ public class ToteLifter
     {
         m_stateIndex = 0;
         m_stateMode = "DropTotes";
+        piControllerLeft.reinit();
+        piControllerRight.reinit();
     }
 
     /**
@@ -111,6 +130,13 @@ public class ToteLifter
     {
         m_stateIndex = 0;
         m_stateMode = "AddTote";
+        piControllerLeft.reinit();
+        piControllerRight.reinit();
+    }
+
+    boolean getTotesDropped()
+    {
+        return totesDropped;
     }
 
     /**
@@ -119,6 +145,7 @@ public class ToteLifter
      */
     void idle()
     {
+        totesDropped = false;
         switch(m_stateMode)
         {
             case "AddTote":
@@ -195,6 +222,7 @@ public class ToteLifter
                         if(goToPosition(m_collectLiftPosition))
                         {
                             m_stateIndex = -1;
+                            totesDropped = true;
                         }
                         break;
 
