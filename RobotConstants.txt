@@ -1,0 +1,62 @@
+Robot
+
+
+Autonomous
+infra red distance trigger
+0.5
+
+time that you ignore the distance to not see the recycling can
+1000
+
+time that you drive backward for before you drop the totes
+2000
+
+time that you drive backward for after you have dropped the totes
+1000
+
+speed that you drive backward at after you have the totes
+0.5
+
+
+LineTrack
+spin threshold for the gyro assit during line tracking
+1.0
+
+
+ToteLifter
+pConstantLeft
+0.5
+
+iConstantLeft
+0.01
+
+pConstantRight
+0.5
+
+iConstantRight
+0.01
+
+closeness threshold
+0.05
+
+servo close posisiton
+30
+
+servo open position
+10
+
+
+Grabber
+vertical p constant
+0.5
+
+vertical i constant
+0.01
+
+horizontal p constant
+0.5
+
+vertical i constant
+0.01
+
+
