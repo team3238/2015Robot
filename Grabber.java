@@ -43,6 +43,7 @@ public class Grabber
      * GrabTote.
      * @param m_stateIndex Variable to control the switch statement in
      * GrabCan.
+     * @param init Variable to incite the switch statements.
      */
 
     double m_hPotValue;
@@ -57,6 +58,7 @@ public class Grabber
     double m_toteCollectingHeight;
     String m_stateMode;
     String m_stateIndex;
+    boolean init;
 
     Grabber(int verticalTalonChannel, int horizontalTalonChannel, 
             int verticalPotPort, int horizontalPotPort, int sonarPort,
@@ -105,7 +107,7 @@ public class Grabber
         }
         boolean retracted = false;
         boolean toteCollected = false;
-        boolean init = true;
+        init = true;
         
         m_hPotValue = horizontalPot.getVoltage();
         m_sonarValue = 2.678677012 * sonar.getVoltage() +
@@ -211,8 +213,8 @@ public class Grabber
 
             case "adjustingLength":
                 horizontalTalon.set(horizontalPI.
-                        getadjustedRotationValue(m_desiredPotValue,
-                            m_hPotValue);
+                        getAdjustedRotationValue(m_desiredPotValue,
+                            m_hPotValue));
                 if(Math.abs(m_hPotValue - m_desiredPotValue) <= m_threshold)
                 {
                     m_stateIndex = "readjustingHeight";
@@ -223,7 +225,7 @@ public class Grabber
                 if(GoToHeight(m_canCollectingHeight))
                 {
                     m_stateIndex = "default";
-                    cancollected = true;
+                    canCollected = true;
                     init = false;
                 }
                 break;
