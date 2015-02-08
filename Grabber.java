@@ -41,6 +41,8 @@ public class Grabber
      * to so it actually engages with the can.
      * @param m_stateMode Variable to control the switch statement in
      * GrabTote.
+     * @param m_stateIndex Variable to control the switch statement in
+     * GrabCan.
      */
 
     double m_hPotValue;
@@ -54,6 +56,7 @@ public class Grabber
     double m_canCollectingHeight;
     double m_toteCollectingHeight;
     String m_stateMode;
+    String m_stateIndex;
 
     Grabber(int verticalTalonChannel, int horizontalTalonChannel, 
             int verticalPotPort, int horizontalPotPort, int sonarPort,
@@ -96,15 +99,18 @@ public class Grabber
 
     boolean GrabTote()
     {
+        if(init)
+        {
+            m_stateMode = "adjustingHeight";
+        }
         boolean retracted = false;
         boolean toteCollected = false;
+        boolean init = true;
         
         m_hPotValue = horizontalPot.getVoltage();
         m_sonarValue = 2.678677012 * sonar.getVoltage() +
             0.0204464172;       
         double m_desiredPotValue = /*Fancy math stuff from sonar val*/;
-        
-        
         
         
         
@@ -160,13 +166,72 @@ public class Grabber
                         m_threshold)
                 {
                     m_stateMode = "default";
+                    init = false;
                 }
                 break;
                 
             default:
+                init = false;
                 break;
+
+
                 
         }
-        
+
     }
+
+    /**
+     * This method collects a can, but does not retract it. It uses the PI 
+     * controller class.
+     */
+
+    boolean GrabCan()
+    {
+        if(init)
+        {
+            m_stateIndex = "adjustingHeight";
+        }
+        boolean canCollected = false;
+        boolean init = true;
+        
+        m_hPotValue = horizontalPot.getVoltage();
+        m_sonarValue = 2.678677012 * sonar.getVoltage() +
+            0.0204464172;       
+        double m_desiredPotValue = /*Fancy math stuff from sonar val*/;
+      
+
+        switch(m_stateIndex)
+        {
+            case "adjustingHeight":
+                if(GoToHeight(m_canHeight))
+                {
+                    m_stateIndex = "adjustingLength";
+                }
+                break;
+
+            case "adjustingLength":
+                horizontalTalon.set(horizontalPI.
+                        getadjustedRotationValue(m_desiredPotValue,
+                            m_hPotValue);
+                if(Math.abs(m_hPotValue - m_desiredPotValue) <= m_threshold)
+                {
+                    m_stateIndex = "readjustingHeight";
+                }
+                break;
+
+            case "readjustingHeight":
+                if(GoToHeight(m_canCollectingHeight))
+                {
+                    m_stateIndex = "default";
+                    cancollected = true;
+                    init = false;
+                }
+                break;
+
+            default:
+                init = false;
+                break;
+        }
+    }
+        
 }
