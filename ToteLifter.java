@@ -7,7 +7,7 @@ import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.Servo;
 
 /**
- * Class for handling the tote lifter and storer
+ * Class for handeling the tote lifter and storer
  * 
  * @author James Campbell, Aaron Jenson, Anders Sjoboen
  */
@@ -113,7 +113,7 @@ public class ToteLifter
     }
 
     /**
-     * sets the states to start the dropping phases
+     * sets the states to start the droping phases
      */
     void dropTotes()
     {
@@ -159,6 +159,8 @@ public class ToteLifter
                         if(goToPosition(m_collectLiftPosition))
                         {
                             m_stateIndex = 1;
+                            piControllerLeft.reinit();
+                            piControllerRight.reinit();
                         }
                         break;
 
@@ -166,6 +168,8 @@ public class ToteLifter
                         if(goToPosition(m_openDogsLiftPosition))
                         {
                             m_stateIndex = 2;
+                            piControllerLeft.reinit();
+                            piControllerRight.reinit();
                         }
                         break;
 
@@ -178,6 +182,8 @@ public class ToteLifter
                         if(goToPosition(m_closeDogsLiftPosition))
                         {
                             m_stateIndex = 4;
+                            piControllerLeft.reinit();
+                            piControllerRight.reinit();
                         }
                         break;
 
@@ -190,6 +196,7 @@ public class ToteLifter
                         if(goToPosition(m_waitLiftPosition))
                         {
                             m_stateIndex = -1;
+
                         }
                         break;
 
@@ -210,6 +217,8 @@ public class ToteLifter
                         if(goToPosition(m_openDogsLiftPosition))
                         {
                             m_stateIndex = 1;
+                            piControllerLeft.reinit();
+                            piControllerRight.reinit();
                         }
                         break;
 
