@@ -5,7 +5,7 @@ import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.Servo;
 
 /**
- * Class for handeling the tote lifter and storer
+ * Class for handling the tote lifter and storer
  * 
  * @author James Campbell, Aaron Jenson, Anders Sjoboen
  */
@@ -96,7 +96,7 @@ public class ToteLifter
     }
 
     /**
-     * sets the states to start the droping phases
+     * sets the states to start the dropping phases
      */
     void dropTotes()
     {
