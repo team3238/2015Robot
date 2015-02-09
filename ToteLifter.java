@@ -7,13 +7,12 @@ import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.Servo;
 
 /**
- * Class for handeling the tote lifter and storer
+ * Class for controlling the lifting and storing of totes
  * 
  * @author James Campbell, Aaron Jenson, Anders Sjoboen
  */
 public class ToteLifter
 {
-
     CANTalon liftMotorTalon;
     Servo dogOneServo;
     Servo dogTwoServo;
@@ -40,6 +39,7 @@ public class ToteLifter
             int potentiometerPort, PIController piContLeft,
             PIController piContRight)
     {
+        //TO-DO: File handling should be done at the Robot class level
         m_fileContents = FileReader.readFile("RobotConstants.txt");
         m_pConstant = Double.parseDouble(m_fileContents.get(2));
         m_iConstant = Double.parseDouble(m_fileContents.get(2));
@@ -57,7 +57,7 @@ public class ToteLifter
     }
 
     /**
-     * initializes member variables for the tote lifter
+     * Initializes member variables for the tote lifter
      */
     void init()
     {
@@ -67,7 +67,7 @@ public class ToteLifter
     }
 
     /**
-     * open the dogs
+     * Opens the dogs
      */
     void openDogs()
     {
@@ -76,7 +76,7 @@ public class ToteLifter
     }
 
     /**
-     * closes the dogs
+     * Closes the dogs
      */
     void closeDogs()
     {
@@ -85,26 +85,27 @@ public class ToteLifter
     }
 
     /**
-     * This method moves the liftMotorTalon towards the position you want
+     * Moves the tote lifter towards a desired position
      * 
-     * @param wantedPosition
-     * @return whether or not you have reached the desired position
+     * @param setpoint The desired position
+     * @return Whether or not you have reached the desired position
      */
-    boolean goToPosition(double wantedPosition)
+    //TO-DO: This method needs to use the PI controller
+    boolean goToPosition(double setpoint)
     {
         boolean positionReached = false;
         // Go to desired vertical position
         m_potValue = liftPotentiometer.getValue();
 
-        if(m_potValue > wantedPosition)
+        if(m_potValue > setpoint)
         {
             liftMotorTalon.set(-outputValue);
-        } else if(m_potValue < wantedPosition)
+        } else if(m_potValue < setpoint)
         {
             liftMotorTalon.set(outputValue);
         }
 
-        if(Math.abs(m_potValue - wantedPosition) <= m_threshold)
+        if(Math.abs(m_potValue - setpoint) <= m_threshold)
         {
             positionReached = true;
         }
@@ -113,7 +114,7 @@ public class ToteLifter
     }
 
     /**
-     * sets the states to start the droping phases
+     * Sets the states to start the droping phases
      */
     void dropTotes()
     {
@@ -124,7 +125,7 @@ public class ToteLifter
     }
 
     /**
-     * sets the states to start the storing phases
+     * Sets the states to start the storing phases
      */
     void storeTote()
     {
@@ -140,9 +141,10 @@ public class ToteLifter
     }
 
     /**
-     * controls the phases that the tote lifter goes through when it runs. This
-     * must be called periodically for it to work
+     * Controls the phases that the tote lifter goes through when it runs, this
+     * must be called every loop for the tote lifter to operate
      */
+    //TO-DO All states need comments
     void idle()
     {
         totesDropped = false;
@@ -152,6 +154,8 @@ public class ToteLifter
             {
                 switch(m_stateIndex)
                 {
+                    //TO-DO: Why is this state here?
+                    //TO-DO: All of these states need names instead of numbers
                     case -1:
                         break;
 
@@ -210,6 +214,8 @@ public class ToteLifter
             {
                 switch(m_stateIndex)
                 {
+                    //TO-DO: Why is this state here?
+                    //TO-DO: All of these states need names instead of numbers
                     case -1:
                         break;
 
