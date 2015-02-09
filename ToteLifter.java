@@ -32,8 +32,9 @@ public class ToteLifter
     boolean totesDropped;
 
     ToteLifter(int liftMotorTalonPort, int servoOnePort, int servoTwoPort,
-            int potentiometerPortLeft, int potentiometerPortRight, PIController piContLeft,
-            PIController piContRight, double accuracyThreshold, double openServoPosition,
+            int potentiometerPortLeft, int potentiometerPortRight, 
+            PIController piContLeft, PIController piContRight, 
+            double accuracyThreshold, double openServoPosition,
             double closeServoPosition)
     {
         m_threshold = accuracyThreshold;
@@ -94,14 +95,17 @@ public class ToteLifter
         sensorValueLeft = liftPotentiometerLeft.getValue();
         sensorValueRight = liftPotentiometerRight.getValue();
         
-        outputValueLeft = piControllerLeft.getAdjustedRotationValue(setpoint, sensorValueLeft);
-        outputValueRight = piControllerRight.getAdjustedRotationValue(setpoint, sensorValueRight);
+        outputValueLeft = piControllerLeft.getAdjustedRotationValue(setpoint, 
+        		sensorValueLeft);
+        outputValueRight = piControllerRight.getAdjustedRotationValue(setpoint, 
+        		sensorValueRight);
         // Go to desired vertical position
 
         liftMotorTalonLeft.set(outputValueLeft);
         liftMotorTalonRight.set(outputValueRight);
 
-        if(Math.abs(((sensorValueLeft+sensorValueRight)*0.5) - setpoint) <= m_threshold)
+        if(Math.abs(((sensorValueLeft+sensorValueRight)*0.5) - setpoint) <= 
+        		m_threshold)
         {
             positionReached = true;
         }
