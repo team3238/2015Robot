@@ -1,24 +1,22 @@
 package org.usfirst.frc.team3238.robot;
 
-import java.util.ArrayList;
-
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.Servo;
 
 /**
- * Class for handeling the tote lifter and storer
+ * Class for controlling the lifting and storing of totes
  * 
  * @author James Campbell, Aaron Jenson, Anders Sjoboen
  */
 public class ToteLifter
 {
-
-    CANTalon liftMotorTalon;
+    CANTalon liftMotorTalonLeft;
+    CANTalon liftMotorTalonRight;
     Servo dogOneServo;
     Servo dogTwoServo;
-    AnalogInput liftPotentiometer;
-    ArrayList<String> m_fileContents;
+    AnalogInput liftPotentiometerLeft;
+    AnalogInput liftPotentiometerRight;
     PIController piControllerLeft;
     PIController piControllerRight;
 
@@ -28,46 +26,43 @@ public class ToteLifter
     double m_waitLiftPosition;
     double m_openServoPosition;
     double m_closeServoPosition;
-    int m_potValue;
-    int m_stateIndex;
+    String m_stateIndex;
     String m_stateMode;
     double m_threshold;
-    double m_pConstant;
-    double m_iConstant;
     boolean totesDropped;
 
     ToteLifter(int liftMotorTalonPort, int servoOnePort, int servoTwoPort,
-            int potentiometerPort, PIController piContLeft,
-            PIController piContRight)
+            int potentiometerPortLeft, int potentiometerPortRight, 
+            PIController piContLeft, PIController piContRight, 
+            double accuracyThreshold, double openServoPosition,
+            double closeServoPosition)
     {
-        m_fileContents = FileReader.readFile("RobotConstants.txt");
-        m_pConstant = Double.parseDouble(m_fileContents.get(2));
-        m_iConstant = Double.parseDouble(m_fileContents.get(2));
-        m_threshold = Double.parseDouble(m_fileContents.get(2));
-        m_openServoPosition = Double.parseDouble(m_fileContents.get(2));
-        m_closeServoPosition = Double.parseDouble(m_fileContents.get(2));
-        liftMotorTalon = new CANTalon(liftMotorTalonPort);
+        m_threshold = accuracyThreshold;
+        m_openServoPosition = openServoPosition;
+        m_closeServoPosition = closeServoPosition;
+        liftMotorTalonLeft = new CANTalon(liftMotorTalonPort);
+        liftMotorTalonRight = new CANTalon(liftMotorTalonPort);
         dogOneServo = new Servo(servoOnePort);
         dogTwoServo = new Servo(servoTwoPort);
-        liftPotentiometer = new AnalogInput(potentiometerPort);
-        m_potValue = liftPotentiometer.getValue();
+        liftPotentiometerLeft = new AnalogInput(potentiometerPortLeft);
+        liftPotentiometerRight = new AnalogInput(potentiometerPortRight);
         piControllerLeft = piContLeft;
         piControllerRight = piContRight;
 
     }
 
     /**
-     * initializes member variables for the tote lifter
+     * Initializes member variables for the tote lifter
      */
     void init()
     {
-        m_stateIndex = -1;
+        m_stateIndex = "Nothing";
         m_stateMode = "Nothing";
         totesDropped = false;
     }
 
     /**
-     * open the dogs
+     * Opens the dogs
      */
     void openDogs()
     {
@@ -76,7 +71,7 @@ public class ToteLifter
     }
 
     /**
-     * closes the dogs
+     * Closes the dogs
      */
     void closeDogs()
     {
@@ -85,26 +80,32 @@ public class ToteLifter
     }
 
     /**
-     * This method moves the liftMotorTalon towards the position you want
+     * Moves the tote lifter towards a desired position
      * 
-     * @param wantedPosition
-     * @return whether or not you have reached the desired position
+     * @param setpoint The desired position
+     * @return Whether or not you have reached the desired position
      */
-    boolean goToPosition(double wantedPosition)
+    boolean goToPosition(double setpoint)
     {
         boolean positionReached = false;
+        double outputValueLeft;
+        double outputValueRight;
+        double sensorValueLeft;
+        double sensorValueRight;
+        sensorValueLeft = liftPotentiometerLeft.getValue();
+        sensorValueRight = liftPotentiometerRight.getValue();
+        
+        outputValueLeft = piControllerLeft.getAdjustedRotationValue(setpoint, 
+        		sensorValueLeft);
+        outputValueRight = piControllerRight.getAdjustedRotationValue(setpoint, 
+        		sensorValueRight);
         // Go to desired vertical position
-        m_potValue = liftPotentiometer.getValue();
 
-        if(m_potValue > wantedPosition)
-        {
-            liftMotorTalon.set(-outputValue);
-        } else if(m_potValue < wantedPosition)
-        {
-            liftMotorTalon.set(outputValue);
-        }
+        liftMotorTalonLeft.set(outputValueLeft);
+        liftMotorTalonRight.set(outputValueRight);
 
-        if(Math.abs(m_potValue - wantedPosition) <= m_threshold)
+        if(Math.abs(((sensorValueLeft+sensorValueRight)*0.5) - setpoint) <= 
+        		m_threshold)
         {
             positionReached = true;
         }
@@ -113,22 +114,22 @@ public class ToteLifter
     }
 
     /**
-     * sets the states to start the droping phases
+     * Sets the states to start the droping phases
      */
     void dropTotes()
     {
-        m_stateIndex = 0;
+        m_stateIndex = "GoToOpenDogsPosition";
         m_stateMode = "DropTotes";
         piControllerLeft.reinit();
         piControllerRight.reinit();
     }
 
     /**
-     * sets the states to start the storing phases
+     * Sets the states to start the storing phases
      */
     void storeTote()
     {
-        m_stateIndex = 0;
+        m_stateIndex = "GoToLiftPosition";
         m_stateMode = "AddTote";
         piControllerLeft.reinit();
         piControllerRight.reinit();
@@ -140,62 +141,67 @@ public class ToteLifter
     }
 
     /**
-     * controls the phases that the tote lifter goes through when it runs. This
-     * must be called periodically for it to work
+     * Controls the phases that the tote lifter goes through when it runs, this
+     * must be called every loop for the tote lifter to operate
      */
+    //TO-DO All states need comments
     void idle()
     {
         totesDropped = false;
         switch(m_stateMode)
         {
+        	case "Nothing":
+        		break;
+        		
             case "AddTote":
-            {
                 switch(m_stateIndex)
                 {
-                    case -1:
+                    //TO-DO: Why is this state here?
+                	//This state is here to be more efficient 
+                    case "Nothing":
                         break;
 
-                    case 0:
+                    case "GoToLiftPosition":
                         if(goToPosition(m_collectLiftPosition))
                         {
-                            m_stateIndex = 1;
+                            m_stateIndex = "GoToOpenDogsPosition";
                             piControllerLeft.reinit();
                             piControllerRight.reinit();
                         }
                         break;
 
-                    case 1:
+                    case "GoToOpenDogsPosition":
                         if(goToPosition(m_openDogsLiftPosition))
                         {
-                            m_stateIndex = 2;
+                            m_stateIndex = "OpenDogs";
                             piControllerLeft.reinit();
                             piControllerRight.reinit();
                         }
                         break;
 
-                    case 2:
+                    case "OpenDogs":
                         openDogs();
-                        m_stateIndex = 3;
+                        m_stateIndex = "GoToCloseDogsPosition";
                         break;
 
-                    case 3:
+                    case "GoToCloseDogsPosition":
                         if(goToPosition(m_closeDogsLiftPosition))
                         {
-                            m_stateIndex = 4;
+                            m_stateIndex = "CloseDogs";
                             piControllerLeft.reinit();
                             piControllerRight.reinit();
                         }
                         break;
 
-                    case 4:
+                    case "CloseDogs":
                         closeDogs();
-                        m_stateIndex = 5;
+                        m_stateIndex = "GoToWaitLiftPosition";
                         break;
 
-                    case 5:
+                    case "GoToWaitLiftPosition":
                         if(goToPosition(m_waitLiftPosition))
                         {
-                            m_stateIndex = -1;
+                            m_stateIndex = "Nothing";
 
                         }
                         break;
@@ -204,33 +210,31 @@ public class ToteLifter
                         break;
                 }
                 break;
-            }
 
             case "DropTotes":
-            {
                 switch(m_stateIndex)
                 {
-                    case -1:
+                    case "Nothing":
                         break;
 
-                    case 0:
+                    case "GoToOpenDogsPosition":
                         if(goToPosition(m_openDogsLiftPosition))
                         {
-                            m_stateIndex = 1;
+                            m_stateIndex = "OpenDogs";
                             piControllerLeft.reinit();
                             piControllerRight.reinit();
                         }
                         break;
 
-                    case 1:
+                    case "OpenDogs":
                         openDogs();
-                        m_stateIndex = 2;
+                        m_stateIndex = "GoToLiftPosition";
                         break;
 
-                    case 2:
+                    case "GoToLiftPosition":
                         if(goToPosition(m_collectLiftPosition))
                         {
-                            m_stateIndex = -1;
+                            m_stateIndex = "Nothing";
                             totesDropped = true;
                         }
                         break;
@@ -239,7 +243,6 @@ public class ToteLifter
                         break;
                 }
                 break;
-            }
 
             default:
                 break;
