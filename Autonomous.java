@@ -1,7 +1,5 @@
 package org.usfirst.frc.team3238.robot;
 
-import java.util.ArrayList;
-
 import edu.wpi.first.wpilibj.BuiltInAccelerometer;
 import edu.wpi.first.wpilibj.DigitalInput;
 
@@ -19,7 +17,6 @@ public class Autonomous
     int m_timeDriveBack;
     int m_timeDriveAway;
     double m_moveBackSpeed;
-    ArrayList<String> m_fileContents;
 
     public static class AutoState
     {
@@ -28,14 +25,15 @@ public class Autonomous
                 driveAway = 5, done = 6;
     }
 
-    Autonomous(Chassis chassis)
+    Autonomous(Chassis chassis, double infraredDistanceTrigger, 
+    		long timeIgnore, int timeDriveBack, int timeDriveAway, 
+    		double moveBackSpeed)
     {
-        m_fileContents = FileReader.readFile("RobotConstants.txt");
-        m_infraredDistanceTrigger = Double.parseDouble(m_fileContents.get(2));
-        m_timeIgnore = Long.parseLong(m_fileContents.get(2));
-        m_timeDriveBack = Integer.parseInt(m_fileContents.get(2));
-        m_timeDriveAway = Integer.parseInt(m_fileContents.get(2));
-        m_moveBackSpeed = Double.parseDouble(m_fileContents.get(2));
+        m_infraredDistanceTrigger = infraredDistanceTrigger;
+        m_timeIgnore = timeIgnore;
+        m_timeDriveBack = timeDriveBack;
+        m_timeDriveAway = timeDriveAway;
+        m_moveBackSpeed = moveBackSpeed;
     }
 
     /**
