@@ -11,7 +11,7 @@ time that you ignore the distance to not see the recycling can
 time that you drive backward for before you drop the totes
 2000
 
-time that you drive backward for after you have dropped the totes
+time that you drive away for after you have dropped the totes
 1000
 
 speed that you drive backward at after you have the totes
@@ -19,7 +19,7 @@ speed that you drive backward at after you have the totes
 
 
 LineTrack
-spin threshold for the gyro assit during line tracking
+spin threshold for the gyro assist during line tracking
 1.0
 
 
@@ -36,7 +36,7 @@ pConstantRight
 iConstantRight
 0.01
 
-closeness threshold
+accuracy threshold for lifter 
 0.05
 
 servo close posisiton

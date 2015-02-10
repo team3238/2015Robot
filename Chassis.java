@@ -80,21 +80,24 @@ public class Chassis
         if(m_xValue < 0)
         {
             mappedX = -(m_xValue * m_xValue);
-        } else
+        } 
+        else
         {
             mappedX = m_xValue * m_xValue;
         }
         if(m_yValue < 0)
         {
             mappedY = -(m_yValue * m_yValue);
-        } else
+        } 
+        else
         {
             mappedY = m_yValue * m_yValue;
         }
         if(m_twistValue < 0)
         {
             mappedTwist = -(m_twistValue * m_twistValue);
-        } else
+        } 
+        else
         {
             mappedTwist = m_twistValue * m_twistValue;
         }

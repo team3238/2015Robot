@@ -32,7 +32,7 @@ public class ToteLifter
     boolean totesDropped;
 
     ToteLifter(int liftMotorTalonPort, int servoOnePort, int servoTwoPort,
-            int potentiometerPortLeft, int potentiometerPortRight, 
+            AnalogInput potentiometerLeft, AnalogInput potentiometerRight, 
             PIController piContLeft, PIController piContRight, 
             double accuracyThreshold, double openServoPosition,
             double closeServoPosition)
@@ -44,8 +44,8 @@ public class ToteLifter
         liftMotorTalonRight = new CANTalon(liftMotorTalonPort);
         dogOneServo = new Servo(servoOnePort);
         dogTwoServo = new Servo(servoTwoPort);
-        liftPotentiometerLeft = new AnalogInput(potentiometerPortLeft);
-        liftPotentiometerRight = new AnalogInput(potentiometerPortRight);
+        liftPotentiometerLeft = potentiometerLeft;
+        liftPotentiometerRight = potentiometerRight;
         piControllerLeft = piContLeft;
         piControllerRight = piContRight;
 

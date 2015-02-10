@@ -48,7 +48,8 @@ public class GyroDrive
         if(oldTime == 0)
         {
             timeDifference = 0;
-        } else
+        } 
+        else
         {
             timeDifference = time - oldTime;
         }
@@ -56,7 +57,8 @@ public class GyroDrive
         if(Math.abs(oldX - x) > 0.01 || Math.abs(oldY - y) > 0.01)
         {
             cummulativeError = 0.0;
-        } else
+        } 
+        else
         {
             cummulativeError += error;
         }
@@ -77,11 +79,13 @@ public class GyroDrive
         {
             adjustedRotationValue = -(error * pConstant + cummulativeError
                     * Iconstant * timeDifference);
-        } else if(gyroValue < 0)
+        } 
+        else if(gyroValue < 0)
         {
             adjustedRotationValue = error * pConstant + cummulativeError
                     * Iconstant * timeDifference;
-        } else
+        } 
+        else
         {
             adjustedRotationValue = 0;
         }

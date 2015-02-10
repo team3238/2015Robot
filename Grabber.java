@@ -45,15 +45,15 @@ public class Grabber
     boolean m_horizontalExtended;
 
     Grabber(int verticalTalonChannel, int horizontalTalonChannel,
-            int verticalPotPort, int horizontalPotPort,
+    		AnalogInput  grabberVerticalPot, AnalogInput  grabberHorizontalPot,
             AnalogInput sonarSensor,
             double verticalPConstant, double verticalIConstant,
             double horizontalPConstant, double horizontalIConstant)
     {
         verticalTalon = new CANTalon(verticalTalonChannel);
         horizontalTalon = new CANTalon(horizontalTalonChannel);
-        verticalPot = new AnalogInput(verticalPotPort);
-        horizontalPot = new AnalogInput(horizontalPotPort);
+        verticalPot = grabberVerticalPot;
+        horizontalPot = grabberHorizontalPot;
         sonar = sonarSensor;
         verticalPI = new PIController(verticalPConstant, verticalIConstant);
         horizontalPI =

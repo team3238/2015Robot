@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.BuiltInAccelerometer;
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Joystick;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -36,6 +37,11 @@ public class Robot extends IterativeRobot
     ToteLifter toteLifter;
     Grabber grabber;
     ArrayList<String> fileContents;
+    AnalogInput grabberVerticalPot;
+    AnalogInput grabberHorizontalPot;
+    AnalogInput lifterLeftPot;
+    AnalogInput lifterRightPot;
+    Joystick joystick;
 
     double m_spinThreshold;
     double m_infraredDistanceTrigger;
@@ -78,6 +84,11 @@ public class Robot extends IterativeRobot
 		final int SONARSENSORPORT = 1;
 		final int GYROSENSORPORT = 6;
 		
+		final int GRABBERVERTICALPOTPORT = 3;
+		final int GRABBERHORIZONTALPOTPORT = 3;
+		final int LIFTERLEFTPOTPORT = 3;
+		final int LIFTERRIGHTPOTPORT = 3;
+		
 		// Servo Ports
 		final int SERVOLEFTPORT = 2;
 		final int SERVORIGHTPORT = 2;
@@ -86,7 +97,7 @@ public class Robot extends IterativeRobot
 		final int JOYSTICKPORT = 1;
     			
     			
-    			
+		joystick = new Joystick(JOYSTICKPORT);
     			
         fileContents = FileReader.readFile("RobotConstants.txt");
         
@@ -119,6 +130,11 @@ public class Robot extends IterativeRobot
         leftRearMotorController = new CANTalon(CHASSISLEFTREARTALONID);
         rightRearMotorController = new CANTalon(CHASSISRIGHTREARTALONID);
         
+        grabberVerticalPot = new AnalogInput(GRABBERVERTICALPOTPORT);
+        grabberHorizontalPot = new AnalogInput(GRABBERHORIZONTALPOTPORT);
+        lifterLeftPot = new AnalogInput(LIFTERLEFTPOTPORT);
+        lifterRightPot = new AnalogInput(LIFTERRIGHTPOTPORT);
+        
         reflectSensorFront = new DigitalInput(REFLECTSENSORFRONTPORT);
         reflectSensorRear = new DigitalInput(REFLECTSENSORREARPORT);
         gyroSensor = new AnalogInput(GYROSENSORPORT);
@@ -132,12 +148,12 @@ public class Robot extends IterativeRobot
                 rightRearMotorController);
 
         grabber = new Grabber(GRABBERVERTICALTALONID, GRABBERHORIZONTALTALONID, 
-        		3, 4, sonarSensor, m_grabberVerticalP, 
+        		grabberVerticalPot, grabberHorizontalPot, sonarSensor, m_grabberVerticalP, 
         		m_grabberVerticalI,  m_grabberHorizontalP, 
         		m_grabberHorizontalI);
         
         toteLifter = new ToteLifter(LIFTERTALONID, SERVORIGHTPORT, 
-        		SERVOLEFTPORT, 4, 5, piControllerLifterLeft,
+        		SERVOLEFTPORT, lifterLeftPot, lifterRightPot, piControllerLifterLeft,
                 piControllerLifterRight, m_accuracyThreshold, 
                 m_openServoPosition, m_closeServoPosition);
         
@@ -178,7 +194,11 @@ public class Robot extends IterativeRobot
      */
     public void teleopPeriodic()
     {
-
+    	double x = joystick.getRawAxis(1);
+		double y = joystick.getRawAxis(2);
+		double twist = joystick.getRawAxis(3);
+		
+		chassis.setJoystickData(x, y, twist);
     }
 
     /**
