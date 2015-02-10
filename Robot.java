@@ -67,8 +67,8 @@ public class Robot extends IterativeRobot
     		//Chassis
 		final int CHASSISLEFTFRONTTALONID = 6;
 		final int CHASSISLEFTREARTALONID = 8;
-		final int CHASSISRIGHTFRONTTALONID = 7;
-		final int CHASSISRIGHTREARTALONID = 3;
+		final int CHASSISRIGHTFRONTTALONID = 2;
+		final int CHASSISRIGHTREARTALONID = 4;
 			//Grabber
 		final int GRABBERVERTICALTALONID = 4;
 		final int GRABBERHORIZONTALTALONID = 5;
@@ -102,27 +102,27 @@ public class Robot extends IterativeRobot
         fileContents = FileReader.readFile("RobotConstants.txt");
         
         piControllerLifterLeft = new PIController(
-                Double.parseDouble(fileContents.get(2)),
-                Double.parseDouble(fileContents.get(2)));
+                Double.parseDouble(fileContents.get(27)),
+                Double.parseDouble(fileContents.get(30)));
         piControllerLifterRight = new PIController(
-                Double.parseDouble(fileContents.get(2)),
-                Double.parseDouble(fileContents.get(2)));
+                Double.parseDouble(fileContents.get(33)),
+                Double.parseDouble(fileContents.get(36)));
         
-        m_grabberHorizontalI = Double.parseDouble(fileContents.get(2));
-        m_grabberHorizontalP = Double.parseDouble(fileContents.get(2));
-        m_grabberVerticalI = Double.parseDouble(fileContents.get(2));
-        m_grabberVerticalP = Double.parseDouble(fileContents.get(2));
+        m_grabberHorizontalI = Double.parseDouble(fileContents.get(59));
+        m_grabberHorizontalP = Double.parseDouble(fileContents.get(56));
+        m_grabberVerticalI = Double.parseDouble(fileContents.get(53));
+        m_grabberVerticalP = Double.parseDouble(fileContents.get(50));
         
-        m_accuracyThreshold = Double.parseDouble(fileContents.get(2));
-        m_openServoPosition = Double.parseDouble(fileContents.get(2));
-        m_closeServoPosition = Double.parseDouble(fileContents.get(2));
+        m_accuracyThreshold = Double.parseDouble(fileContents.get(39));
+        m_openServoPosition = Double.parseDouble(fileContents.get(45));
+        m_closeServoPosition = Double.parseDouble(fileContents.get(42));
         
-        m_spinThreshold = Double.parseDouble(fileContents.get(2));
-        m_infraredDistanceTrigger = Double.parseDouble(fileContents.get(2));
-        m_timeIgnore = Long.parseLong(fileContents.get(2));
-        m_timeDriveBack = Integer.parseInt(fileContents.get(2));
-        m_timeDriveAway = Integer.parseInt(fileContents.get(2));
-        m_moveBackSpeed = Double.parseDouble(fileContents.get(2));
+        m_spinThreshold = Double.parseDouble(fileContents.get(22));
+        m_infraredDistanceTrigger = Double.parseDouble(fileContents.get(5));
+        m_timeIgnore = Long.parseLong(fileContents.get(8));
+        m_timeDriveBack = Integer.parseInt(fileContents.get(11));
+        m_timeDriveAway = Integer.parseInt(fileContents.get(14));
+        m_moveBackSpeed = Double.parseDouble(fileContents.get(17));
         
 
         leftFrontMotorController = new CANTalon(CHASSISLEFTFRONTTALONID);
