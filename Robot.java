@@ -32,12 +32,24 @@ public class Robot extends IterativeRobot
     AnalogInput gyroSensor;
     BuiltInAccelerometer accelerometer;
     AnalogInput infraredSensor;
+    AnalogInput sonarSensor;
     ToteLifter toteLifter;
     Grabber grabber;
-    ArrayList<String> m_fileContents;
+    ArrayList<String> fileContents;
 
     double m_spinThreshold;
-    double m_infraredDistance;
+    double m_infraredDistanceTrigger;
+    long m_timeIgnore;
+    int m_timeDriveBack;
+    int m_timeDriveAway;
+    double m_moveBackSpeed;
+    double m_grabberHorizontalI;
+    double m_grabberHorizontalP;
+    double m_grabberVerticalI;
+    double m_grabberVerticalP;
+    double m_accuracyThreshold;
+    double m_openServoPosition;
+    double m_closeServoPosition;
 
     /**
      * This function is run when the robot is first started up and should be
@@ -45,32 +57,93 @@ public class Robot extends IterativeRobot
      */
     public void robotInit()
     {
-        m_fileContents = FileReader.readFile("RobotConstants.txt");
-        m_spinThreshold = Double.parseDouble(m_fileContents.get(2));
+    	// Talon Ports
+    		//Chassis
+		final int CHASSISLEFTFRONTTALONID = 6;
+		final int CHASSISLEFTREARTALONID = 8;
+		final int CHASSISRIGHTFRONTTALONID = 7;
+		final int CHASSISRIGHTREARTALONID = 3;
+			//Grabber
+		final int GRABBERVERTICALTALONID = 4;
+		final int GRABBERHORIZONTALTALONID = 5;
+			//Lifter
+		final int LIFTERTALONID = 1;
+		
+		// Digital Inputs
+		final int REFLECTSENSORFRONTPORT = 5;
+		final int REFLECTSENSORREARPORT = 6;
+		
+		// Analog Inputs
+		final int IRSENSORPORT = 7;
+		final int SONARSENSORPORT = 1;
+		final int GYROSENSORPORT = 6;
+		
+		// Servo Ports
+		final int SERVOLEFTPORT = 2;
+		final int SERVORIGHTPORT = 2;
+		
+		// Driver Station Inputs
+		final int JOYSTICKPORT = 1;
+    			
+    			
+    			
+    			
+        fileContents = FileReader.readFile("RobotConstants.txt");
+        
         piControllerLifterLeft = new PIController(
-                Double.parseDouble(m_fileContents.get(2)),
-                Double.parseDouble(m_fileContents.get(2)));
+                Double.parseDouble(fileContents.get(2)),
+                Double.parseDouble(fileContents.get(2)));
         piControllerLifterRight = new PIController(
-                Double.parseDouble(m_fileContents.get(2)),
-                Double.parseDouble(m_fileContents.get(2)));
+                Double.parseDouble(fileContents.get(2)),
+                Double.parseDouble(fileContents.get(2)));
+        
+        m_grabberHorizontalI = Double.parseDouble(fileContents.get(2));
+        m_grabberHorizontalP = Double.parseDouble(fileContents.get(2));
+        m_grabberVerticalI = Double.parseDouble(fileContents.get(2));
+        m_grabberVerticalP = Double.parseDouble(fileContents.get(2));
+        
+        m_accuracyThreshold = Double.parseDouble(fileContents.get(2));
+        m_openServoPosition = Double.parseDouble(fileContents.get(2));
+        m_closeServoPosition = Double.parseDouble(fileContents.get(2));
+        
+        m_spinThreshold = Double.parseDouble(fileContents.get(2));
+        m_infraredDistanceTrigger = Double.parseDouble(fileContents.get(2));
+        m_timeIgnore = Long.parseLong(fileContents.get(2));
+        m_timeDriveBack = Integer.parseInt(fileContents.get(2));
+        m_timeDriveAway = Integer.parseInt(fileContents.get(2));
+        m_moveBackSpeed = Double.parseDouble(fileContents.get(2));
+        
 
-        leftFrontMotorController = new CANTalon(2);
-        rightFrontMotorController = new CANTalon(4);
-        leftRearMotorController = new CANTalon(6);
-        rightRearMotorController = new CANTalon(8);
-
+        leftFrontMotorController = new CANTalon(CHASSISLEFTFRONTTALONID);
+        rightFrontMotorController = new CANTalon(CHASSISRIGHTFRONTTALONID);
+        leftRearMotorController = new CANTalon(CHASSISLEFTREARTALONID);
+        rightRearMotorController = new CANTalon(CHASSISRIGHTREARTALONID);
+        
+        reflectSensorFront = new DigitalInput(REFLECTSENSORFRONTPORT);
+        reflectSensorRear = new DigitalInput(REFLECTSENSORREARPORT);
+        gyroSensor = new AnalogInput(GYROSENSORPORT);
+        infraredSensor = new AnalogInput(IRSENSORPORT);
+        sonarSensor = new AnalogInput(SONARSENSORPORT);
+        accelerometer = new BuiltInAccelerometer();
+        
+        
         chassis = new Chassis(leftFrontMotorController,
                 rightFrontMotorController, leftRearMotorController,
                 rightRearMotorController);
 
-        grabber = new Grabber(1, 2, 3, 4, 5, 6, 7, 8, 9);
-        autonomous = new Autonomous(chassis);
-        reflectSensorFront = new DigitalInput(13);
-        reflectSensorRear = new DigitalInput(14);
-        gyroSensor = new AnalogInput(1);
-        accelerometer = new BuiltInAccelerometer();
-        toteLifter = new ToteLifter(1, 2, 3, 4, piControllerLifterLeft,
-                piControllerLifterRight);
+        grabber = new Grabber(GRABBERVERTICALTALONID, GRABBERHORIZONTALTALONID, 
+        		3, 4, sonarSensor, m_grabberVerticalP, 
+        		m_grabberVerticalI,  m_grabberHorizontalP, 
+        		m_grabberHorizontalI);
+        
+        toteLifter = new ToteLifter(LIFTERTALONID, SERVORIGHTPORT, 
+        		SERVOLEFTPORT, 4, 5, piControllerLifterLeft,
+                piControllerLifterRight, m_accuracyThreshold, 
+                m_openServoPosition, m_closeServoPosition);
+        
+        autonomous = new Autonomous(chassis, m_infraredDistanceTrigger, 
+        		m_timeIgnore, m_timeDriveBack, m_timeDriveAway, 
+        		m_moveBackSpeed);
     }
 
     /**

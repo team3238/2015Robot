@@ -95,9 +95,9 @@ public class ToteLifter
         sensorValueLeft = liftPotentiometerLeft.getValue();
         sensorValueRight = liftPotentiometerRight.getValue();
         
-        outputValueLeft = piControllerLeft.getAdjustedRotationValue(setpoint, 
+        outputValueLeft = piControllerLeft.getMotorValue(setpoint, 
         		sensorValueLeft);
-        outputValueRight = piControllerRight.getAdjustedRotationValue(setpoint, 
+        outputValueRight = piControllerRight.getMotorValue(setpoint, 
         		sensorValueRight);
         // Go to desired vertical position
 
