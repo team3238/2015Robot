@@ -159,10 +159,7 @@ public class Robot extends IterativeRobot
      */
     public void autonomousPeriodic()
     {
-        autonomous.idle(chassis, reflectSensorRear, reflectSensorFront,
-                gyroSensor.getValue(), m_spinThreshold, accelerometer,
-                m_infraredDistance, toteLifter, grabber,
-                piControllerLifterLeft, piControllerLifterRight);
+       
     }
 
     /**

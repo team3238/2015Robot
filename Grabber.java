@@ -4,7 +4,7 @@ import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.CANTalon;
 
 /**
- * This is the class that controls the vertical and horizontal collecter.
+ * This is the class that controls the vertical and horizontal collector.
  *
  * @author Aaron Jenson
  */
@@ -23,18 +23,9 @@ public class Grabber
     double m_horizontalPotSetpoint;
 
     // Constants
-    double m_retractedPotVal;
-    double m_fullyRetractedPotVal;
-    double m_threshold;
-    double m_canHeight;
-    double m_toteHeight;
-    double m_canCollectingHeight;
-    double m_toteCollectingHeight;
-    double m_potValDifference;
+    double m_retractedLocation;
     double m_horizontalThreshold;
     double m_verticalThreshold;
-    // TODO set constants
-
     double m_toteExtendHeight;
     double m_toteGrabHeight;
     double m_canExtendHeight;
@@ -50,12 +41,14 @@ public class Grabber
 
     // Status booleans
     boolean m_doneCollecting;
+    boolean m_hooked;
+    boolean m_horizontalExtended;
 
     Grabber(int verticalTalonChannel, int horizontalTalonChannel,
             int verticalPotPort, int horizontalPotPort,
-            AnalogInput sonarSensor, double verticalPConstant,
-            double verticalIConstant, double horizontalPConstant,
-            double horizontalIConstant)
+            AnalogInput sonarSensor,
+            double verticalPConstant, double verticalIConstant,
+            double horizontalPConstant, double horizontalIConstant)
     {
         verticalTalon = new CANTalon(verticalTalonChannel);
         horizontalTalon = new CANTalon(horizontalTalonChannel);
@@ -63,8 +56,8 @@ public class Grabber
         horizontalPot = new AnalogInput(horizontalPotPort);
         sonar = sonarSensor;
         verticalPI = new PIController(verticalPConstant, verticalIConstant);
-        horizontalPI = new PIController(horizontalPConstant,
-                horizontalIConstant);
+        horizontalPI =
+                new PIController(horizontalPConstant, horizontalIConstant);
     }
 
     /**
@@ -115,7 +108,8 @@ public class Grabber
 
             case "extending":
                 m_doneCollecting = false;
-                if(Math.abs(m_sonarDistance - m_horizontalPotDistance) > m_horizontalThreshold)
+                if(Math.abs(m_sonarDistance - m_horizontalPotDistance) 
+                        > m_horizontalThreshold)
                 {
                     horizontalTalon.set(horizontalPI.getMotorValue(
                             m_sonarDistance, m_horizontalPotDistance));
@@ -136,7 +130,8 @@ public class Grabber
                 break;
 
             case "retracting":
-                if(Math.abs(m_retractedLocation - m_horizontalPotDistance) > m_horizontalThreshold)
+                if(Math.abs(m_retractedLocation - m_horizontalPotDistance) 
+                        > m_horizontalThreshold)
                 {
                     horizontalTalon.set(horizontalPI.getMotorValue(
                             m_retractedLocation, m_horizontalPotDistance));
@@ -148,8 +143,8 @@ public class Grabber
                 break;
 
             default:
-                System.out
-                        .println("Grabber m_horizontalState is in default state!");
+                System.out.println(
+                        "Grabber m_horizontalState is in default state!");
                 break;
         }
 
@@ -167,7 +162,7 @@ public class Grabber
 
             case "prepareForCanGrab":
                 m_extendHeight = m_canExtendHeight;
-                m_grabHeigth = m_canGrabHeight;
+                m_grabHeight = m_canGrabHeight;
                 m_verticalState = "goToExtendHeight";
                 break;
 
@@ -178,10 +173,12 @@ public class Grabber
                 break;
 
             case "goToExtendHeight":
-                if(Math.abs(m_extendHeight - m_verticalPotDistance) > m_verticalThreshold)
+                m_hooked = false;
+                if(Math.abs(m_extendHeight - m_verticalPotDistance) 
+                        > m_verticalThreshold)
                 {
                     verticalTalon.set(verticalPI.getMotorValue(
-                            m_extendHeightLocation, m_verticalPotDistance));
+                            m_extendHeight, m_verticalPotDistance));
                 } else
                 {
                     m_verticalState = "waitForHorizontal";
@@ -199,19 +196,21 @@ public class Grabber
                 break;
 
             case "grab":
-                if(Math.abs(m_grabHeight - m_verticalPotDistance) > m_verticalThreshold)
+                if(Math.abs(m_grabHeight - m_verticalPotDistance) 
+                        > m_verticalThreshold)
                 {
                     verticalTalon.set(verticalPI.getMotorValue(m_grabHeight,
                             m_verticalPotDistance));
                 } else
                 {
                     m_verticalState = "waitForCommand";
+                    m_hooked = true;
                 }
                 break;
 
             default:
-                System.out
-                        .println("Grabber m_verticalState is in default state!");
+                System.out.println(
+                        "Grabber m_verticalState is in default state!");
                 break;
         }
     }
