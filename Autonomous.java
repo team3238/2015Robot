@@ -129,7 +129,7 @@ public class Autonomous
                     m_timeStamp = System.currentTimeMillis();
                     break;
                 }
-                AccelAssist.moveRight(chassis, accelerometer);
+                chassis.setJoystickData(.5, 0, 0);
                 break;
 
             case AutoState.moveBackwards:
