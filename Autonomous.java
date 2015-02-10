@@ -78,7 +78,7 @@ public class Autonomous
         {
             case AutoState.collectingTote:
                 chassis.setJoystickData(0, 0, 0);
-                if(grabber.collecting())
+                if(grabber.doneCollecting())
                 // Grabber.collecting should return true when it
                 // finishes collecting
                 {
