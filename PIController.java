@@ -29,7 +29,7 @@ public class PIController
      * @return m_returnPower The motor power calculated by the PI loop to get
      *         the sensorValue closer to the setpoint
      */
-    double getAdjustedRotationValue(double setpoint, double sensorValue)
+    double getMotorValue(double setpoint, double sensorValue)
     {
         double error = setpoint - sensorValue;
         m_cummulativeError += error;
