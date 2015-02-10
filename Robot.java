@@ -161,7 +161,7 @@ public class Robot extends IterativeRobot
     {
         autonomous.idle(chassis, reflectSensorRear, reflectSensorFront,
                 gyroSensor.getValue(), m_spinThreshold, accelerometer,
-                m_infraredDistance, toteLifter, grabber,
+                infraredSensor.getVoltage(), toteLifter, grabber,
                 piControllerLifterLeft, piControllerLifterRight);
     }
 
