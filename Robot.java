@@ -171,7 +171,14 @@ public class Robot extends IterativeRobot
      */
     public void autonomousInit()
     {
-        autonomous.init();
+        
+        m_grabberHorizontalI = Double.parseDouble(fileContents.get(59));
+        m_grabberHorizontalP = Double.parseDouble(fileContents.get(56));
+        m_grabberVerticalI = Double.parseDouble(fileContents.get(53));
+        m_grabberVerticalP = Double.parseDouble(fileContents.get(50));
+        
+        grabber.inputPIConstants(m_grabberVerticalP, m_grabberVerticalI, 
+        		m_grabberHorizontalP, m_grabberHorizontalI);
     }
 
     /**
@@ -179,10 +186,7 @@ public class Robot extends IterativeRobot
      */
     public void autonomousPeriodic()
     {
-        autonomous.idle(chassis, reflectSensorRear, reflectSensorFront,
-                gyroSensor.getValue(), m_spinThreshold, accelerometer,
-                infraredSensor.getVoltage(), toteLifter, grabber,
-                piControllerLifterLeft, piControllerLifterRight);
+
     }
 
     /**
@@ -204,9 +208,11 @@ public class Robot extends IterativeRobot
         double verticalPotVolt;
         double horizontalPotVolt;
         verticalPotVolt = Math.round(grabberVerticalPot.getVoltage()*1000)*.001;
-        horizontalPotVolt=Math.round(grabberHorizontalPot.getVoltage()*1000)*.001;
+        horizontalPotVolt =
+        		Math.round(grabberHorizontalPot.getVoltage()*1000)*.001;
         
-        System.out.println("Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
+        System.out.println(
+        		"Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
 //    	double x = joystick.getX();
 //		double y = joystick.getY();
 //		double twist = joystick.getTwist();
@@ -218,10 +224,12 @@ public class Robot extends IterativeRobot
     {
         double verticalPotVolt;
         double horizontalPotVolt;
-        verticalPotVolt = Math.round(grabberVerticalPot.getVoltage()*100)*.01;
-        horizontalPotVolt=Math.round(grabberHorizontalPot.getVoltage()*100)*.01;
+        verticalPotVolt = Math.round(grabberVerticalPot.getVoltage()*1000)*.001;
+        horizontalPotVolt = 
+        		Math.round(grabberHorizontalPot.getVoltage()*1000)*.001;
         
-        System.out.println("Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
+        System.out.println(
+        		"Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
     }
 
     /**
