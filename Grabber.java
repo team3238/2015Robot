@@ -44,14 +44,14 @@ public class Grabber
     boolean m_hooked;
     boolean m_horizontalExtended;
 
-    Grabber(int verticalTalonChannel, int horizontalTalonChannel,
+    Grabber(CANTalon verticalCANTalon, CANTalon horizontalCANTalon,
     		AnalogInput  grabberVerticalPot, AnalogInput  grabberHorizontalPot,
             AnalogInput sonarSensor,
             double verticalPConstant, double verticalIConstant,
             double horizontalPConstant, double horizontalIConstant)
     {
-        verticalTalon = new CANTalon(verticalTalonChannel);
-        horizontalTalon = new CANTalon(horizontalTalonChannel);
+        verticalTalon = verticalCANTalon;
+        horizontalTalon = horizontalCANTalon;
         verticalPot = grabberVerticalPot;
         horizontalPot = grabberHorizontalPot;
         sonar = sonarSensor;

@@ -28,6 +28,8 @@ public class Robot extends IterativeRobot
     CANTalon rightFrontMotorController;
     CANTalon leftRearMotorController;
     CANTalon rightRearMotorController;
+    CANTalon grabberVerticalTalon;
+    CANTalon grabberHorizontalTalon;
     DigitalInput reflectSensorFront;
     DigitalInput reflectSensorRear;
     AnalogInput gyroSensor;
@@ -65,15 +67,15 @@ public class Robot extends IterativeRobot
     {
     	// Talon Ports
     		//Chassis
-		final int CHASSISLEFTFRONTTALONID = 6;
-		final int CHASSISLEFTREARTALONID = 8;
-		final int CHASSISRIGHTFRONTTALONID = 2;
-		final int CHASSISRIGHTREARTALONID = 4;
+		final int CHASSISLEFTFRONTTALONID = 2;
+		final int CHASSISLEFTREARTALONID = 4;
+		final int CHASSISRIGHTFRONTTALONID = 8;
+		final int CHASSISRIGHTREARTALONID = 6;
 			//Grabber
-		final int GRABBERVERTICALTALONID = 4;
+		final int GRABBERVERTICALTALONID = 1;
 		final int GRABBERHORIZONTALTALONID = 5;
 			//Lifter
-		final int LIFTERTALONID = 1;
+		final int LIFTERTALONID = 3;
 		
 		// Digital Inputs
 		final int REFLECTSENSORFRONTPORT = 5;
@@ -86,15 +88,15 @@ public class Robot extends IterativeRobot
 		
 		final int GRABBERVERTICALPOTPORT = 4;
 		final int GRABBERHORIZONTALPOTPORT = 5;
-		final int LIFTERLEFTPOTPORT = 3;
+		final int LIFTERLEFTPOTPORT = 2;
 		final int LIFTERRIGHTPOTPORT = 3;
 		
 		// Servo Ports
 		final int SERVOLEFTPORT = 2;
-		final int SERVORIGHTPORT = 2;
+		final int SERVORIGHTPORT = 4;
 		
 		// Driver Station Inputs
-		final int JOYSTICKPORT = 1;
+		final int JOYSTICKPORT = 0;
     			
     			
 		joystick = new Joystick(JOYSTICKPORT);
@@ -130,6 +132,8 @@ public class Robot extends IterativeRobot
         leftRearMotorController = new CANTalon(CHASSISLEFTREARTALONID);
         rightRearMotorController = new CANTalon(CHASSISRIGHTREARTALONID);
         
+        grabberVerticalTalon = new CANTalon(GRABBERVERTICALTALONID);
+        grabberHorizontalTalon = new CANTalon(GRABBERHORIZONTALTALONID);
         grabberVerticalPot = new AnalogInput(GRABBERVERTICALPOTPORT);
         grabberHorizontalPot = new AnalogInput(GRABBERHORIZONTALPOTPORT);
         lifterLeftPot = new AnalogInput(LIFTERLEFTPOTPORT);
@@ -147,7 +151,7 @@ public class Robot extends IterativeRobot
                 rightFrontMotorController, leftRearMotorController,
                 rightRearMotorController);
 
-        grabber = new Grabber(GRABBERVERTICALTALONID, GRABBERHORIZONTALTALONID, 
+        grabber = new Grabber(grabberVerticalTalon, grabberHorizontalTalon, 
         		grabberVerticalPot, grabberHorizontalPot, sonarSensor, m_grabberVerticalP, 
         		m_grabberVerticalI,  m_grabberHorizontalP, 
         		m_grabberHorizontalI);
@@ -194,16 +198,30 @@ public class Robot extends IterativeRobot
      */
     public void teleopPeriodic()
     {
-    	double x = joystick.getRawAxis(1);
-		double y = joystick.getRawAxis(2);
-		double twist = joystick.getRawAxis(3);
-		double verticalPotVolt;
-		double horizontalPotVolt;
-		verticalPotVolt = Math.round(grabberVerticalPot.getVoltage()*100)*.01;
-		horizontalPotVolt=Math.round(grabberHorizontalPot.getVoltage()*100)*.01;
-		
-		chassis.setJoystickData(x, y, twist);
-		System.out.println("Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
+        grabberVerticalTalon.set((joystick.getY())/2);
+        chassis.setJoystickData(0, 0, 0);
+        chassis.idle();
+        double verticalPotVolt;
+        double horizontalPotVolt;
+        verticalPotVolt = Math.round(grabberVerticalPot.getVoltage()*100)*.01;
+        horizontalPotVolt=Math.round(grabberHorizontalPot.getVoltage()*100)*.01;
+        
+        System.out.println("Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
+//    	double x = joystick.getX();
+//		double y = joystick.getY();
+//		double twist = joystick.getTwist();
+//		chassis.setJoystickData(-y, -x, twist);
+//		chassis.idle();
+    }
+    
+    public void disabledPeriodic()
+    {
+        double verticalPotVolt;
+        double horizontalPotVolt;
+        verticalPotVolt = Math.round(grabberVerticalPot.getVoltage()*100)*.01;
+        horizontalPotVolt=Math.round(grabberHorizontalPot.getVoltage()*100)*.01;
+        
+        System.out.println("Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
     }
 
     /**
