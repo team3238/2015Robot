@@ -171,7 +171,6 @@ public class Robot extends IterativeRobot
      */
     public void autonomousInit()
     {
-        autonomous.init();
     }
 
     /**
@@ -179,10 +178,16 @@ public class Robot extends IterativeRobot
      */
     public void autonomousPeriodic()
     {
-        autonomous.idle(chassis, reflectSensorRear, reflectSensorFront,
-                gyroSensor.getValue(), m_spinThreshold, accelerometer,
-                infraredSensor.getVoltage(), toteLifter, grabber,
-                piControllerLifterLeft, piControllerLifterRight);
+        chassis.setJoystickData(0, 0, 0);
+        chassis.idle();
+        double verticalPotVolt;
+        double horizontalPotVolt;
+        verticalPotVolt = Math.round(grabberVerticalPot.getVoltage()*1000)*.001;
+        horizontalPotVolt=Math.round(grabberHorizontalPot.getVoltage()*1000)*.001;
+        
+        System.out.println("Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
+        
+        grabber.goToHeight(0.689);
     }
 
     /**

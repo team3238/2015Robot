@@ -69,6 +69,13 @@ public class Grabber
     {
         return m_doneCollecting;
     }
+    
+    void inputPIConstants(double verticalPConstant, double verticalIConstant, 
+            double horizontalPConstant, double horizontalIConstant)
+    {
+        verticalPI.inputConstants(verticalPConstant, verticalIConstant);
+        horizontalPI.inputConstants(horizontalPConstant, verticalPConstant);
+    }
 
     void grabCan()
     {
@@ -86,6 +93,14 @@ public class Grabber
     {
         m_verticalState = "prepareForToteGrab";
         m_horizontalState = "extending";
+    }
+    
+    void goToHeight(double height)
+    {
+        m_verticalPotDistance = -0.4106463365 * (verticalPot.getVoltage()) +
+                1.67119633;
+        verticalTalon.set(verticalPI.getMotorValue(
+                height, m_verticalPotDistance));
     }
 
     /**

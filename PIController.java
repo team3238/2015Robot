@@ -65,4 +65,10 @@ public class PIController
         m_cummulativeError = 0;
         m_oldTime = 0;
     }
+    
+    void inputConstants(double pConstant, double iConstant)
+    {
+        m_pConstant = pConstant;
+        m_iConstant = iConstant;
+    }
 }
