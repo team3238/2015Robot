@@ -84,8 +84,8 @@ public class Robot extends IterativeRobot
 		final int SONARSENSORPORT = 1;
 		final int GYROSENSORPORT = 6;
 		
-		final int GRABBERVERTICALPOTPORT = 3;
-		final int GRABBERHORIZONTALPOTPORT = 3;
+		final int GRABBERVERTICALPOTPORT = 4;
+		final int GRABBERHORIZONTALPOTPORT = 5;
 		final int LIFTERLEFTPOTPORT = 3;
 		final int LIFTERRIGHTPOTPORT = 3;
 		
@@ -197,8 +197,13 @@ public class Robot extends IterativeRobot
     	double x = joystick.getRawAxis(1);
 		double y = joystick.getRawAxis(2);
 		double twist = joystick.getRawAxis(3);
+		double verticalPotVolt;
+		double horizontalPotVolt;
+		verticalPotVolt = Math.round(grabberVerticalPot.getVoltage()*100)*.01;
+		horizontalPotVolt=Math.round(grabberHorizontalPot.getVoltage()*100)*.01;
 		
 		chassis.setJoystickData(x, y, twist);
+		System.out.println("Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
     }
 
     /**
