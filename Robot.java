@@ -148,18 +148,18 @@ public class Robot extends IterativeRobot
         
         
         chassis = new Chassis(leftFrontMotorController,
-                rightFrontMotorController, leftRearMotorController,
+                leftRearMotorController, rightFrontMotorController,
                 rightRearMotorController);
 
         grabber = new Grabber(grabberVerticalTalon, grabberHorizontalTalon, 
-        		grabberVerticalPot, grabberHorizontalPot, sonarSensor, m_grabberVerticalP, 
-        		m_grabberVerticalI,  m_grabberHorizontalP, 
+        		grabberVerticalPot, grabberHorizontalPot, sonarSensor, 
+        		m_grabberVerticalP, m_grabberVerticalI,  m_grabberHorizontalP, 
         		m_grabberHorizontalI);
         
         toteLifter = new ToteLifter(LIFTERTALONID, SERVORIGHTPORT, 
-        		SERVOLEFTPORT, lifterLeftPot, lifterRightPot, piControllerLifterLeft,
-                piControllerLifterRight, m_accuracyThreshold, 
-                m_openServoPosition, m_closeServoPosition);
+        		SERVOLEFTPORT, lifterLeftPot, lifterRightPot, 
+        		piControllerLifterLeft, piControllerLifterRight, 
+        		m_accuracyThreshold, m_openServoPosition, m_closeServoPosition);
         
         autonomous = new Autonomous(chassis, m_infraredDistanceTrigger, 
         		m_timeIgnore, m_timeDriveBack, m_timeDriveAway, 
@@ -203,8 +203,8 @@ public class Robot extends IterativeRobot
         chassis.idle();
         double verticalPotVolt;
         double horizontalPotVolt;
-        verticalPotVolt = Math.round(grabberVerticalPot.getVoltage()*100)*.01;
-        horizontalPotVolt=Math.round(grabberHorizontalPot.getVoltage()*100)*.01;
+        verticalPotVolt = Math.round(grabberVerticalPot.getVoltage()*1000)*.001;
+        horizontalPotVolt=Math.round(grabberHorizontalPot.getVoltage()*1000)*.001;
         
         System.out.println("Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
 //    	double x = joystick.getX();
