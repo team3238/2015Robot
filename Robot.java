@@ -223,8 +223,23 @@ public class Robot extends IterativeRobot
      */
     public void teleopPeriodic()
     {
-        grabberVerticalTalon.set(-joystickZero.getY());
-        grabberHorizontalTalon.set(joystickOne.getY());
+        if(joystickZero.getRawButton(3))
+        {
+            grabber.grabTote();
+        }
+        if(joystickZero.getRawButton(4))
+        {
+            grabber.grabCan();
+        }
+        if(joystickZero.getRawButton(5))
+        {
+            grabber.grabStepCan();
+        }
+        grabber.idle();
+        chassis.setJoystickData(0, 0, 0);
+        chassis.idle();
+//        grabberVerticalTalon.set(-joystickZero.getY());
+//        grabberHorizontalTalon.set(joystickOne.getY());
 //        System.out.println(sonarSensor.getVoltage());
 //        rightLifterTalon.set(joystickOne.getY());
 //        leftLifterTalon.set(joystickZero.getY());
@@ -232,11 +247,11 @@ public class Robot extends IterativeRobot
 //       grabberVerticalTalon.set(joystick.getY());
 //        chassis.setJoystickData(0, 0, 0);
 //        chassis.idle();
-        double verticalPotVolt;
-        double horizontalPotVolt;
-        verticalPotVolt = grabberVerticalPot.getVoltage();
-        horizontalPotVolt = grabberHorizontalPot.getVoltage();
-        System.out.println(horizontalPotVolt);
+//        double verticalPotVolt;
+//        double horizontalPotVolt;
+//        verticalPotVolt = grabberVerticalPot.getVoltage();
+//        horizontalPotVolt = grabberHorizontalPot.getVoltage();
+//        System.out.println(horizontalPotVolt);
 //        
 //        System.out.println(-0.2608156852*verticalPotVolt+1.421847684);
         
@@ -269,6 +284,7 @@ public class Robot extends IterativeRobot
      */
     public void testPeriodic()
     {
-
+      grabberVerticalTalon.set(-joystickZero.getY());
+      grabberHorizontalTalon.set(joystickOne.getY());
     }
 }

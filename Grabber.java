@@ -67,6 +67,8 @@ public class Grabber
         m_toteGrabHeight = toteGrabHeight;
         m_stepCanExtendHeight = stepCanExtendHeight;
         m_stepCanGrabHeight = stepCanGrabHeight;
+        m_horizontalState = "waitForCommand";
+        m_verticalState = "waitForCommand";
     }
 
     /**

@@ -48,16 +48,16 @@ servo open position
 
 Grabber
 vertical p constant
-0.4630
+80
 
 vertical i constant
 0
 
 horizontal p constant
-0.5
+10
 
 vertical i constant
-0.01
+0
 
 canExtendHeight
 0.391
