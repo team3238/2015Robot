@@ -24,12 +24,10 @@ public class Robot extends IterativeRobot
     PIController piControllerGrabber;
     PIController piControllerLifterLeft;
     PIController piControllerLifterRight;
-    CANTalon leftFrontMotorController;
-    CANTalon rightFrontMotorController;
-    CANTalon leftRearMotorController;
-    CANTalon rightRearMotorController;
-    CANTalon grabberVerticalTalon;
-    CANTalon grabberHorizontalTalon;
+    CANTalon leftFrontMotorController, rightFrontMotorController, 
+            leftRearMotorController, rightRearMotorController;
+    CANTalon grabberVerticalTalon, grabberHorizontalTalon;
+    CANTalon leftLifterTalon, rightLifterTalon;
     DigitalInput reflectSensorFront;
     DigitalInput reflectSensorRear;
     AnalogInput gyroSensor;
@@ -43,7 +41,7 @@ public class Robot extends IterativeRobot
     AnalogInput grabberHorizontalPot;
     AnalogInput lifterLeftPot;
     AnalogInput lifterRightPot;
-    Joystick joystick;
+    Joystick joystickZero, joystickOne;
 
     double m_spinThreshold;
     double m_infraredDistanceTrigger;
@@ -58,6 +56,12 @@ public class Robot extends IterativeRobot
     double m_accuracyThreshold;
     double m_openServoPosition;
     double m_closeServoPosition;
+    double m_canExtendHeight;
+    double m_canGrabHeight;
+    double m_toteExtendHeight;
+    double m_toteGrabHeight;
+    double m_stepCanExtendHeight;
+    double m_stepCanGrabHeight;
 
     /**
      * This function is run when the robot is first started up and should be
@@ -73,9 +77,10 @@ public class Robot extends IterativeRobot
 		final int CHASSISRIGHTREARTALONID = 6;
 			//Grabber
 		final int GRABBERVERTICALTALONID = 1;
-		final int GRABBERHORIZONTALTALONID = 5;
+		final int GRABBERHORIZONTALTALONID = 3;
 			//Lifter
-		final int LIFTERTALONID = 3;
+		final int LIFTERLEFTTALONID = 5;
+		final int LIFTERRIGHTTALONID = 7;
 		
 		// Digital Inputs
 		final int REFLECTSENSORFRONTPORT = 5;
@@ -83,7 +88,7 @@ public class Robot extends IterativeRobot
 		
 		// Analog Inputs
 		final int IRSENSORPORT = 7;
-		final int SONARSENSORPORT = 1;
+		final int SONARSENSORPORT = 0;
 		final int GYROSENSORPORT = 6;
 		
 		final int GRABBERVERTICALPOTPORT = 4;
@@ -99,7 +104,8 @@ public class Robot extends IterativeRobot
 		final int JOYSTICKPORT = 0;
     			
     			
-		joystick = new Joystick(JOYSTICKPORT);
+		joystickZero = new Joystick(JOYSTICKPORT);
+		joystickOne = new Joystick(1);
     			
         fileContents = FileReader.readFile("RobotConstants.txt");
         
@@ -125,7 +131,13 @@ public class Robot extends IterativeRobot
         m_timeDriveBack = Integer.parseInt(fileContents.get(11));
         m_timeDriveAway = Integer.parseInt(fileContents.get(14));
         m_moveBackSpeed = Double.parseDouble(fileContents.get(17));
-        
+
+        m_canExtendHeight = Double.parseDouble(fileContents.get(62));
+        m_canGrabHeight = Double.parseDouble(fileContents.get(65));
+        m_toteExtendHeight = Double.parseDouble(fileContents.get(68));
+        m_toteGrabHeight = Double.parseDouble(fileContents.get(71));
+        m_stepCanExtendHeight = Double.parseDouble(fileContents.get(74)); 
+        m_stepCanGrabHeight = Double.parseDouble(fileContents.get(77));
 
         leftFrontMotorController = new CANTalon(CHASSISLEFTFRONTTALONID);
         rightFrontMotorController = new CANTalon(CHASSISRIGHTFRONTTALONID);
@@ -146,6 +158,8 @@ public class Robot extends IterativeRobot
         sonarSensor = new AnalogInput(SONARSENSORPORT);
         accelerometer = new BuiltInAccelerometer();
         
+        leftLifterTalon = new CANTalon(LIFTERLEFTTALONID);
+        rightLifterTalon = new CANTalon(LIFTERRIGHTTALONID);
         
         chassis = new Chassis(leftFrontMotorController,
                 leftRearMotorController, rightFrontMotorController,
@@ -154,10 +168,12 @@ public class Robot extends IterativeRobot
         grabber = new Grabber(grabberVerticalTalon, grabberHorizontalTalon, 
         		grabberVerticalPot, grabberHorizontalPot, sonarSensor, 
         		m_grabberVerticalP, m_grabberVerticalI,  m_grabberHorizontalP, 
-        		m_grabberHorizontalI);
+        		m_grabberHorizontalI, m_canExtendHeight, m_canGrabHeight, 
+                m_toteExtendHeight, m_toteGrabHeight, m_stepCanExtendHeight, 
+                m_stepCanGrabHeight);
         
-        toteLifter = new ToteLifter(LIFTERTALONID, SERVORIGHTPORT, 
-        		SERVOLEFTPORT, lifterLeftPot, lifterRightPot, 
+        toteLifter = new ToteLifter(leftLifterTalon, rightLifterTalon, 
+                SERVORIGHTPORT, SERVOLEFTPORT, lifterLeftPot, lifterRightPot, 
         		piControllerLifterLeft, piControllerLifterRight, 
         		m_accuracyThreshold, m_openServoPosition, m_closeServoPosition);
         
@@ -171,6 +187,7 @@ public class Robot extends IterativeRobot
      */
     public void autonomousInit()
     {        
+        fileContents = FileReader.readFile("RobotConstants.txt");
         m_grabberHorizontalI = Double.parseDouble(fileContents.get(59));
         m_grabberHorizontalP = Double.parseDouble(fileContents.get(56));
         m_grabberVerticalI = Double.parseDouble(fileContents.get(53));
@@ -178,6 +195,8 @@ public class Robot extends IterativeRobot
         
         grabber.inputPIConstants(m_grabberVerticalP, m_grabberVerticalI, 
         		m_grabberHorizontalP, m_grabberHorizontalI);
+        System.out.print(m_grabberVerticalP);
+        System.out.println(" " + m_grabberVerticalI);
     }
 
     /**
@@ -187,13 +206,7 @@ public class Robot extends IterativeRobot
     {
         chassis.setJoystickData(0, 0, 0);
         chassis.idle();
-        double verticalPotVolt;
-        double horizontalPotVolt;
-        verticalPotVolt = Math.round(grabberVerticalPot.getVoltage()*1000)*.001;
-        horizontalPotVolt=Math.round(grabberHorizontalPot.getVoltage()*1000)*.001;
-        
-        System.out.println("Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
-        
+
         grabber.goToHeight(0.689);
     }
 
@@ -210,17 +223,25 @@ public class Robot extends IterativeRobot
      */
     public void teleopPeriodic()
     {
-        grabberVerticalTalon.set((joystick.getY())/2);
-        chassis.setJoystickData(0, 0, 0);
-        chassis.idle();
+        grabberVerticalTalon.set(-joystickZero.getY());
+        grabberHorizontalTalon.set(joystickOne.getY());
+//        System.out.println(sonarSensor.getVoltage());
+//        rightLifterTalon.set(joystickOne.getY());
+//        leftLifterTalon.set(joystickZero.getY());
+        
+//       grabberVerticalTalon.set(joystick.getY());
+//        chassis.setJoystickData(0, 0, 0);
+//        chassis.idle();
         double verticalPotVolt;
         double horizontalPotVolt;
-        verticalPotVolt = Math.round(grabberVerticalPot.getVoltage()*1000)*.001;
-        horizontalPotVolt =
-        		Math.round(grabberHorizontalPot.getVoltage()*1000)*.001;
+        verticalPotVolt = grabberVerticalPot.getVoltage();
+        horizontalPotVolt = grabberHorizontalPot.getVoltage();
+        System.out.println(horizontalPotVolt);
+//        
+//        System.out.println(-0.2608156852*verticalPotVolt+1.421847684);
         
-        System.out.println(
-        		"Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
+//        System.out.println(
+//        		"Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
 //    	double x = joystick.getX();
 //		double y = joystick.getY();
 //		double twist = joystick.getTwist();
@@ -232,12 +253,15 @@ public class Robot extends IterativeRobot
     {
         double verticalPotVolt;
         double horizontalPotVolt;
-        verticalPotVolt = Math.round(grabberVerticalPot.getVoltage()*1000)*.001;
-        horizontalPotVolt = 
-        		Math.round(grabberHorizontalPot.getVoltage()*1000)*.001;
+        verticalPotVolt = grabberVerticalPot.getVoltage();
+        horizontalPotVolt = grabberHorizontalPot.getVoltage();
         
-        System.out.println(
-        		"Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
+//        System.out.println(sonarSensor.getVoltage());
+        
+        //System.out.println(
+        //        "Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
+        //System.out.println(-0.2608156852*verticalPotVolt+1.421847684);
+        System.out.println(horizontalPotVolt);
     }
 
     /**

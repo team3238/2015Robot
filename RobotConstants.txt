@@ -48,10 +48,10 @@ servo open position
 
 Grabber
 vertical p constant
-0.5
+0.4630
 
 vertical i constant
-0.01
+0
 
 horizontal p constant
 0.5
@@ -59,4 +59,20 @@ horizontal p constant
 vertical i constant
 0.01
 
+canExtendHeight
+0.391
 
+canGrabHeight
+0.796
+
+toteExtendHeight
+0.165
+
+toteGrabHeight
+0.232
+
+stepCanExtendHeight
+0.576
+
+stepCanGrabHeight
+0.851

@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.CANTalon;
 /**
  * This is the class that controls the vertical and horizontal collector.
  *
- * @author Aaron Jenson
+ * @author Aaron Jenson and Nick Papadakis
  */
 
 public class Grabber
@@ -48,7 +48,10 @@ public class Grabber
     		AnalogInput  grabberVerticalPot, AnalogInput  grabberHorizontalPot,
             AnalogInput sonarSensor,
             double verticalPConstant, double verticalIConstant,
-            double horizontalPConstant, double horizontalIConstant)
+            double horizontalPConstant, double horizontalIConstant,
+            double canExtendHeight, double canGrabHeight, 
+            double toteExtendHeight, double toteGrabHeight, 
+            double stepCanExtendHeight, double stepCanGrabHeight)
     {
         verticalTalon = verticalCANTalon;
         horizontalTalon = horizontalCANTalon;
@@ -58,6 +61,12 @@ public class Grabber
         verticalPI = new PIController(verticalPConstant, verticalIConstant);
         horizontalPI =
                 new PIController(horizontalPConstant, horizontalIConstant);
+        m_canExtendHeight = canExtendHeight;
+        m_canGrabHeight = canGrabHeight;
+        m_toteExtendHeight = toteExtendHeight;
+        m_toteGrabHeight = toteGrabHeight;
+        m_stepCanExtendHeight = stepCanExtendHeight;
+        m_stepCanGrabHeight = stepCanGrabHeight;
     }
 
     /**
@@ -97,10 +106,11 @@ public class Grabber
     
     void goToHeight(double height)
     {
-        m_verticalPotDistance = -0.4106463365 * (verticalPot.getVoltage()) +
-                1.67119633;
-        verticalTalon.set(verticalPI.getMotorValue(
+        m_verticalPotDistance = -0.4195497482 * (verticalPot.getVoltage()) +
+                1.649164662;
+        verticalTalon.set(-verticalPI.getMotorValue(
                 height, m_verticalPotDistance));
+        System.out.println(m_verticalPotDistance);
     }
 
     /**
@@ -128,7 +138,8 @@ public class Grabber
                 {
                     horizontalTalon.set(horizontalPI.getMotorValue(
                             m_sonarDistance, m_horizontalPotDistance));
-                } else
+                }
+                else
                 {
                     m_horizontalState = "waitForHook";
                 }
@@ -138,7 +149,8 @@ public class Grabber
                 if(m_hooked)
                 {
                     m_horizontalState = "retracting";
-                } else
+                }
+                else
                 {
                     horizontalTalon.set(0);
                 }
@@ -150,7 +162,8 @@ public class Grabber
                 {
                     horizontalTalon.set(horizontalPI.getMotorValue(
                             m_retractedLocation, m_horizontalPotDistance));
-                } else
+                }
+                else
                 {
                     m_horizontalState = "waitForCommand";
                     m_doneCollecting = true;
@@ -192,9 +205,10 @@ public class Grabber
                 if(Math.abs(m_extendHeight - m_verticalPotDistance) 
                         > m_verticalThreshold)
                 {
-                    verticalTalon.set(verticalPI.getMotorValue(
+                    verticalTalon.set(-verticalPI.getMotorValue(
                             m_extendHeight, m_verticalPotDistance));
-                } else
+                }
+                else
                 {
                     m_verticalState = "waitForHorizontal";
                 }
@@ -204,7 +218,8 @@ public class Grabber
                 if(m_horizontalExtended)
                 {
                     m_verticalState = "grab";
-                } else
+                }
+                else
                 {
                     verticalTalon.set(0);
                 }
@@ -214,9 +229,10 @@ public class Grabber
                 if(Math.abs(m_grabHeight - m_verticalPotDistance) 
                         > m_verticalThreshold)
                 {
-                    verticalTalon.set(verticalPI.getMotorValue(m_grabHeight,
+                    verticalTalon.set(-verticalPI.getMotorValue(m_grabHeight,
                             m_verticalPotDistance));
-                } else
+                }
+                else
                 {
                     m_verticalState = "waitForCommand";
                     m_hooked = true;

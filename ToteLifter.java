@@ -11,8 +11,7 @@ import edu.wpi.first.wpilibj.Servo;
  */
 public class ToteLifter
 {
-    CANTalon liftMotorTalonLeft;
-    CANTalon liftMotorTalonRight;
+    CANTalon liftTalonLeft, liftTalonRight;
     Servo dogOneServo;
     Servo dogTwoServo;
     AnalogInput liftPotentiometerLeft;
@@ -31,8 +30,8 @@ public class ToteLifter
     double m_threshold;
     boolean totesDropped;
 
-    ToteLifter(int liftMotorTalonPort, int servoOnePort, int servoTwoPort,
-            AnalogInput potentiometerLeft, AnalogInput potentiometerRight, 
+    ToteLifter(CANTalon leftLift, CANTalon rightLift, int servoOnePort, 
+            int servoTwoPort, AnalogInput potentiometerLeft, AnalogInput potentiometerRight, 
             PIController piContLeft, PIController piContRight, 
             double accuracyThreshold, double openServoPosition,
             double closeServoPosition)
@@ -40,8 +39,8 @@ public class ToteLifter
         m_threshold = accuracyThreshold;
         m_openServoPosition = openServoPosition;
         m_closeServoPosition = closeServoPosition;
-        liftMotorTalonLeft = new CANTalon(liftMotorTalonPort);
-        liftMotorTalonRight = new CANTalon(liftMotorTalonPort);
+        liftTalonLeft = leftLift;
+        liftTalonRight = rightLift;
         dogOneServo = new Servo(servoOnePort);
         dogTwoServo = new Servo(servoTwoPort);
         liftPotentiometerLeft = potentiometerLeft;
@@ -101,8 +100,8 @@ public class ToteLifter
         		sensorValueRight);
         // Go to desired vertical position
 
-        liftMotorTalonLeft.set(outputValueLeft);
-        liftMotorTalonRight.set(outputValueRight);
+        liftTalonLeft.set(outputValueLeft);
+        liftTalonRight.set(outputValueRight);
 
         if(Math.abs(((sensorValueLeft+sensorValueRight)*0.5) - setpoint) <= 
         		m_threshold)
