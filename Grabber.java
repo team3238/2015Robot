@@ -80,6 +80,8 @@ public class Grabber
         m_pauseDistanceFromObject = pauseDistanceFromObject;
         m_horizontalState = "waitForCommand";
         m_verticalState = "waitForCommand";
+        m_horizontalThreshold = horizontalThreshold;
+        m_verticalThreshold = verticalThreshold;
     }
 
     /**
@@ -96,7 +98,7 @@ public class Grabber
             double horizontalPConstant, double horizontalIConstant)
     {
         verticalPI.inputConstants(verticalPConstant, verticalIConstant);
-        horizontalPI.inputConstants(horizontalPConstant, verticalPConstant);
+        horizontalPI.inputConstants(horizontalPConstant, horizontalIConstant);
     }
 
     void grabCan()
@@ -153,13 +155,14 @@ public class Grabber
                 + 1.421847684;
         m_sonarDistance = 2.2121617347 * sonar.getVoltage() + 0.0467578232;
         System.out.println("HorizontalState: " + m_horizontalState);
-        System.out.println("VerticalState: " + m_verticalState);
+        System.out.println("VerticalState:                                                " + m_verticalState);
 
         switch(m_horizontalState)
         {
             case "waitForCommand":
                 horizontalTalon.set(0);
                 m_horizontalSetpoint = m_sonarDistance;
+                horizontalPI.reinit();
                 break;
 
             case "extending":
@@ -174,14 +177,17 @@ public class Grabber
                 else
                 {
                     m_horizontalState = "waitForVertical";
+                    horizontalPI.reinit();
                 }
                 break;
 
-            case "waitForVetical":
+            case "waitForVertical":
                 if(m_verticalDone)
                 {
                     m_horizontalState = "finishExtending";
+                    horizontalPI.reinit();
                 }
+                horizontalTalon.set(0);
                 break;
                 
             case "finishExtending":
@@ -196,11 +202,13 @@ public class Grabber
                     m_horizontalState = "waitForHook";
                     m_horizontalExtended = true;
                 }
+                break;
              
             case "waitForHook":
                 if(m_hooked)
                 {
                     m_horizontalState = "retracting";
+                    horizontalPI.reinit();
                 }
                 else
                 {
@@ -232,6 +240,7 @@ public class Grabber
         {
             case "waitForCommand":
                 verticalTalon.set(0);
+                verticalPI.reinit();
                 break;
 
             case "prepareForToteGrab":
@@ -272,6 +281,7 @@ public class Grabber
                 if(m_horizontalExtended)
                 {
                     m_verticalState = "grab";
+                    verticalPI.reinit();
                 }
                 else
                 {

@@ -39,7 +39,8 @@ public class PIController
         if(m_oldTime == 0)
         {
             timeDifference = 0;
-        } else
+        } 
+        else
         {
             timeDifference = time - m_oldTime;
         }
@@ -48,7 +49,8 @@ public class PIController
         {
             returnPower = error * m_pConstant + m_cummulativeError
                     * m_iConstant * timeDifference;
-        } else
+        }
+        else
         {
             returnPower = 0;
         }

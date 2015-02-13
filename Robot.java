@@ -203,6 +203,16 @@ public class Robot extends IterativeRobot
     public void teleopInit()
     {
         grabber.reset();
+        fileContents = FileReader.readFile("RobotConstants.txt");
+        double grabberHorizontalI = Double.parseDouble(fileContents.get(59));
+        double grabberHorizontalP = Double.parseDouble(fileContents.get(56));
+        double grabberVerticalI = Double.parseDouble(fileContents.get(53));
+        double grabberVerticalP = Double.parseDouble(fileContents.get(50));
+        
+        grabber.inputPIConstants(grabberVerticalP, grabberVerticalI, 
+                grabberHorizontalP, grabberHorizontalI);
+        System.out.print(grabberHorizontalP);
+        System.out.println(" " + grabberHorizontalI);
     }
 
     /**
