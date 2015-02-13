@@ -131,6 +131,15 @@ public class Grabber
                 height, m_verticalPotDistance));
         System.out.println(m_verticalPotDistance);
     }
+    
+    void goToLength(double length)
+    {
+        m_horizontalPotDistance = -0.4364133427* horizontalPot.getVoltage()
+                + 1.78356027;
+        horizontalTalon.set(-horizontalPI.getMotorValue
+                (length, m_horizontalPotDistance));
+        System.out.println(m_horizontalPotDistance);
+    }
 
     /**
      * Handles the state machine for the motion of the vertical and horizonal

@@ -182,8 +182,8 @@ public class Robot extends IterativeRobot
         
         grabber.inputPIConstants(grabberVerticalP, grabberVerticalI, 
         		grabberHorizontalP, grabberHorizontalI);
-        System.out.print(grabberVerticalP);
-        System.out.println(" " + grabberVerticalI);
+        System.out.print(grabberHorizontalP);
+        System.out.println(" " + grabberHorizontalI);
     }
 
     /**
@@ -194,7 +194,7 @@ public class Robot extends IterativeRobot
         chassis.setJoystickData(0, 0, 0);
         chassis.idle();
 
-        grabber.goToHeight(0.689);
+        grabber.goToLength(0.689);
     }
 
     /**
