@@ -76,3 +76,15 @@ stepCanExtendHeight
 
 stepCanGrabHeight
 0.851
+
+retractedLocation
+0.5
+
+horizontalThreshold
+0.01
+
+verticalThreshold
+0.01
+
+pauseDistanceFromObject
+0.25

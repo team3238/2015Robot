@@ -24,14 +24,20 @@ public class Grabber
 
     // Constants
     double m_retractedLocation;
+    double m_pauseDistanceFromObject;
+
     double m_horizontalThreshold;
     double m_verticalThreshold;
+    
     double m_toteExtendHeight;
     double m_toteGrabHeight;
     double m_canExtendHeight;
     double m_canGrabHeight;
     double m_stepCanExtendHeight;
     double m_stepCanGrabHeight;
+    
+    double m_horizontalSetpoint = 0;
+    
     double m_extendHeight;
     double m_grabHeight;
 
@@ -40,18 +46,21 @@ public class Grabber
     String m_verticalState;
 
     // Status booleans
-    boolean m_doneCollecting;
-    boolean m_hooked;
-    boolean m_horizontalExtended;
+    boolean m_doneCollecting = false;
+    boolean m_hooked = false;
+    boolean m_horizontalExtended = false;
+    boolean m_verticalDone = false;
 
     Grabber(CANTalon verticalCANTalon, CANTalon horizontalCANTalon,
     		AnalogInput  grabberVerticalPot, AnalogInput  grabberHorizontalPot,
             AnalogInput sonarSensor,
             double verticalPConstant, double verticalIConstant,
             double horizontalPConstant, double horizontalIConstant,
+            double horizontalThreshold, double verticalThreshold,
             double canExtendHeight, double canGrabHeight, 
             double toteExtendHeight, double toteGrabHeight, 
-            double stepCanExtendHeight, double stepCanGrabHeight)
+            double stepCanExtendHeight, double stepCanGrabHeight,
+            double retractedLocation, double pauseDistanceFromObject)
     {
         verticalTalon = verticalCANTalon;
         horizontalTalon = horizontalCANTalon;
@@ -67,6 +76,8 @@ public class Grabber
         m_toteGrabHeight = toteGrabHeight;
         m_stepCanExtendHeight = stepCanExtendHeight;
         m_stepCanGrabHeight = stepCanGrabHeight;
+        m_retractedLocation = retractedLocation;
+        m_pauseDistanceFromObject = pauseDistanceFromObject;
         m_horizontalState = "waitForCommand";
         m_verticalState = "waitForCommand";
     }
@@ -106,10 +117,16 @@ public class Grabber
         m_horizontalState = "extending";
     }
     
+    void reset()
+    {
+        m_verticalState = "waitForCommand";
+        m_horizontalState = "waitForCommand";
+    }
+    
     void goToHeight(double height)
     {
-        m_verticalPotDistance = -0.4195497482 * (verticalPot.getVoltage()) +
-                1.649164662;
+        m_verticalPotDistance = -0.2608156852* verticalPot.getVoltage()
+                + 1.421847684;
         verticalTalon.set(-verticalPI.getMotorValue(
                 height, m_verticalPotDistance));
         System.out.println(m_verticalPotDistance);
@@ -121,32 +138,56 @@ public class Grabber
      */
     void idle()
     {
-        // TODO Add mapping for potentiometers
-        m_horizontalPotDistance = horizontalPot.getVoltage();
-        m_verticalPotDistance = verticalPot.getVoltage();
-        // TODO Check mapping of ultrasonic sensor with RoboRIO
-        m_sonarDistance = 2.678677012 * sonar.getVoltage() + 0.0204464172;
+        m_horizontalPotDistance = -0.4364133427* horizontalPot.getVoltage()
+                + 1.78356027;
+        m_verticalPotDistance = -0.2608156852* verticalPot.getVoltage()
+                + 1.421847684;
+        m_sonarDistance = 2.2121617347 * sonar.getVoltage() + 0.0467578232;
+        System.out.println("HorizontalState: " + m_horizontalState);
+        System.out.println("VerticalState: " + m_verticalState);
 
         switch(m_horizontalState)
         {
             case "waitForCommand":
                 horizontalTalon.set(0);
+                m_horizontalSetpoint = m_sonarDistance;
                 break;
 
             case "extending":
                 m_doneCollecting = false;
-                if(Math.abs(m_sonarDistance - m_horizontalPotDistance) 
+                m_horizontalExtended = false;
+                if(Math.abs(m_horizontalSetpoint - m_pauseDistanceFromObject - 
+                        m_horizontalPotDistance) > m_horizontalThreshold)
+                {
+                    horizontalTalon.set(-horizontalPI.getMotorValue(
+                            m_horizontalSetpoint, m_horizontalPotDistance));
+                }
+                else
+                {
+                    m_horizontalState = "waitForVertical";
+                }
+                break;
+
+            case "waitForVetical":
+                if(m_verticalDone)
+                {
+                    m_horizontalState = "finishExtending";
+                }
+                break;
+                
+            case "finishExtending":
+                if(Math.abs(m_horizontalSetpoint - m_horizontalPotDistance) 
                         > m_horizontalThreshold)
                 {
-                    horizontalTalon.set(horizontalPI.getMotorValue(
-                            m_sonarDistance, m_horizontalPotDistance));
+                    horizontalTalon.set(-horizontalPI.getMotorValue(
+                            m_horizontalSetpoint, m_horizontalPotDistance));
                 }
                 else
                 {
                     m_horizontalState = "waitForHook";
+                    m_horizontalExtended = true;
                 }
-                break;
-
+             
             case "waitForHook":
                 if(m_hooked)
                 {
@@ -162,7 +203,7 @@ public class Grabber
                 if(Math.abs(m_retractedLocation - m_horizontalPotDistance) 
                         > m_horizontalThreshold)
                 {
-                    horizontalTalon.set(horizontalPI.getMotorValue(
+                    horizontalTalon.set(-horizontalPI.getMotorValue(
                             m_retractedLocation, m_horizontalPotDistance));
                 }
                 else
@@ -204,6 +245,7 @@ public class Grabber
 
             case "goToExtendHeight":
                 m_hooked = false;
+                m_verticalDone = false;
                 if(Math.abs(m_extendHeight - m_verticalPotDistance) 
                         > m_verticalThreshold)
                 {
@@ -213,6 +255,7 @@ public class Grabber
                 else
                 {
                     m_verticalState = "waitForHorizontal";
+                    m_verticalDone = true;
                 }
                 break;
 

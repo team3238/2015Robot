@@ -12,8 +12,7 @@ import edu.wpi.first.wpilibj.Servo;
 public class ToteLifter
 {
     CANTalon liftTalonLeft, liftTalonRight;
-    Servo dogOneServo;
-    Servo dogTwoServo;
+    Servo leftLifterServo, rightLifterServo;
     AnalogInput liftPotentiometerLeft;
     AnalogInput liftPotentiometerRight;
     PIController piControllerLeft;
@@ -30,24 +29,23 @@ public class ToteLifter
     double m_threshold;
     boolean totesDropped;
 
-    ToteLifter(CANTalon leftLift, CANTalon rightLift, int servoOnePort, 
-            int servoTwoPort, AnalogInput potentiometerLeft, AnalogInput potentiometerRight, 
-            PIController piContLeft, PIController piContRight, 
-            double accuracyThreshold, double openServoPosition,
-            double closeServoPosition)
+    ToteLifter(CANTalon leftLift, CANTalon rightLift, Servo leftServo, 
+            Servo rightServo, AnalogInput potentiometerLeft, 
+            AnalogInput potentiometerRight, PIController piContLeft, 
+            PIController piContRight, double accuracyThreshold, 
+            double openServoPosition, double closeServoPosition)
     {
         m_threshold = accuracyThreshold;
         m_openServoPosition = openServoPosition;
         m_closeServoPosition = closeServoPosition;
         liftTalonLeft = leftLift;
         liftTalonRight = rightLift;
-        dogOneServo = new Servo(servoOnePort);
-        dogTwoServo = new Servo(servoTwoPort);
+        leftLifterServo = leftServo;
+        rightLifterServo = rightServo;
         liftPotentiometerLeft = potentiometerLeft;
         liftPotentiometerRight = potentiometerRight;
         piControllerLeft = piContLeft;
         piControllerRight = piContRight;
-
     }
 
     /**
@@ -65,8 +63,8 @@ public class ToteLifter
      */
     void openDogs()
     {
-        dogOneServo.set(m_openServoPosition);
-        dogTwoServo.set(m_openServoPosition);
+        leftLifterServo.set(m_openServoPosition);
+        rightLifterServo.set(m_openServoPosition);
     }
 
     /**
@@ -74,8 +72,8 @@ public class ToteLifter
      */
     void closeDogs()
     {
-        dogOneServo.set(m_closeServoPosition);
-        dogTwoServo.set(m_closeServoPosition);
+        leftLifterServo.set(m_closeServoPosition);
+        rightLifterServo.set(m_closeServoPosition);
     }
 
     /**
