@@ -28,13 +28,13 @@ pConstantLeft
 0.5
 
 iConstantLeft
-0.01
+0
 
 pConstantRight
 0.5
 
 iConstantRight
-0.01
+0
 
 accuracy threshold for lifter 
 0.05
@@ -88,3 +88,9 @@ verticalThreshold
 
 pauseDistanceFromObject
 0.25
+
+grabberGentleHorizontalP
+1
+
+grabberGentleHorizontalI
+0

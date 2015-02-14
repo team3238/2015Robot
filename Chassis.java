@@ -38,10 +38,10 @@ public class Chassis
         drivetrain = new RobotDrive(leftFrontMotorController,
                 leftRearMotorController, rightFrontMotorController,
                 rightRearMotorController);
-        drivetrain.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
-        drivetrain.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);
-        drivetrain.setInvertedMotor(RobotDrive.MotorType.kFrontRight, false);
-        drivetrain.setInvertedMotor(RobotDrive.MotorType.kRearRight, false);
+        drivetrain.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, false);
+        drivetrain.setInvertedMotor(RobotDrive.MotorType.kRearLeft, false);
+        drivetrain.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+        drivetrain.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);
     }
 
     /**
@@ -58,9 +58,9 @@ public class Chassis
      */
     void setJoystickData(double x, double y, double twist)
     {
-        m_xValue = -(x);
-        m_yValue = -(y);
-        m_twistValue = -(twist);
+        m_xValue = y;
+        m_yValue = x;
+        m_twistValue = twist;
     }
 
     /**

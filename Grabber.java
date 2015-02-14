@@ -40,6 +40,11 @@ public class Grabber
     
     double m_extendHeight;
     double m_grabHeight;
+    
+    double m_horizontalP;
+    double m_horizontalI;
+    double m_gentleHorizontalP;
+    double m_gentleHorizontalI;
 
     // Switch state variables
     String m_horizontalState;
@@ -56,6 +61,7 @@ public class Grabber
             AnalogInput sonarSensor,
             double verticalPConstant, double verticalIConstant,
             double horizontalPConstant, double horizontalIConstant,
+            double gentleHorizontalP, double gentleHorizontalI,
             double horizontalThreshold, double verticalThreshold,
             double canExtendHeight, double canGrabHeight, 
             double toteExtendHeight, double toteGrabHeight, 
@@ -70,6 +76,8 @@ public class Grabber
         verticalPI = new PIController(verticalPConstant, verticalIConstant);
         horizontalPI =
                 new PIController(horizontalPConstant, horizontalIConstant);
+        m_gentleHorizontalP = gentleHorizontalP;
+        m_gentleHorizontalI = gentleHorizontalI;
         m_canExtendHeight = canExtendHeight;
         m_canGrabHeight = canGrabHeight;
         m_toteExtendHeight = toteExtendHeight;
@@ -95,10 +103,15 @@ public class Grabber
     }
     
     void inputPIConstants(double verticalPConstant, double verticalIConstant, 
-            double horizontalPConstant, double horizontalIConstant)
+            double horizontalPConstant, double horizontalIConstant, 
+            double gentleHorizontalP, double gentleHorizontalI)
     {
         verticalPI.inputConstants(verticalPConstant, verticalIConstant);
         horizontalPI.inputConstants(horizontalPConstant, horizontalIConstant);
+        m_horizontalP = horizontalPConstant;
+        m_horizontalI = horizontalIConstant;
+        m_gentleHorizontalP = gentleHorizontalP;
+        m_gentleHorizontalI = gentleHorizontalI;
     }
 
     void grabCan()
@@ -185,6 +198,8 @@ public class Grabber
                 if(m_verticalDone)
                 {
                     m_horizontalState = "finishExtending";
+                    horizontalPI.inputConstants
+                        (m_gentleHorizontalP, m_gentleHorizontalI);
                     horizontalPI.reinit();
                 }
                 horizontalTalon.set(0);
@@ -208,6 +223,7 @@ public class Grabber
                 if(m_hooked)
                 {
                     m_horizontalState = "retracting";
+                    horizontalPI.inputConstants(m_horizontalP, m_horizontalI);
                     horizontalPI.reinit();
                 }
                 else
