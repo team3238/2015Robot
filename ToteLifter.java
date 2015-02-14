@@ -74,7 +74,8 @@ public class ToteLifter
     
     void mapPots()
     {
-        m_leftHeight =  0.132 * leftPot.getVoltage() + m_leftPotYIntercept;
+        m_leftHeight =  0.132 * leftPot.getVoltage() + m_leftPotYIntercept 
+                - 0.015;
         m_rightHeight = -0.132 * rightPot.getVoltage() + m_rightPotYIntercept;
     }
 
@@ -124,6 +125,7 @@ public class ToteLifter
         else
         {
             liftTalonLeft.set(0);
+            leftDone = true;
         }
         if(Math.abs(setpoint - m_rightHeight) > m_threshold)
         {
@@ -133,6 +135,7 @@ public class ToteLifter
         else
         {
             liftTalonRight.set(0);
+            rightDone = true;
         }
         if(leftDone && rightDone)
         {
@@ -167,12 +170,19 @@ public class ToteLifter
     {
         return totesDropped;
     }
+    
+    void reinitPIControllers()
+    {
+        piControllerLeft.reinit();
+        piControllerRight.reinit();
+    }
 
     /**
      * Controls the phases that the tote lifter goes through when it runs, this
      * must be called every loop for the tote lifter to operate
      */
     //TODO All states need comments
+    //TODO Add PIController "reinit()"s
     void idle()
     {
         totesDropped = false;

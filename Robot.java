@@ -208,6 +208,7 @@ public class Robot extends IterativeRobot
         toteLifter.zeroPots();
         leftLifterServo.setAngle(0);
         rightLifterServo.setAngle(180);
+        toteLifter.reinitPIControllers();
     }
 
     /**
@@ -220,7 +221,7 @@ public class Robot extends IterativeRobot
 
 //        grabber.goToLength(0.689);
         
-        toteLifter.goToHeight(0.4);
+        System.out.println(toteLifter.goToHeight(0.4));
     }
 
     /**
@@ -294,20 +295,20 @@ public class Robot extends IterativeRobot
      */
     public void testPeriodic()
     {
-        grabberVerticalTalon.set(-joystickZero.getY());
-        grabberHorizontalTalon.set(joystickOne.getY());
+//        grabberVerticalTalon.set(-joystickZero.getY());
+//        grabberHorizontalTalon.set(joystickOne.getY());
         
-//        leftLifterTalon.set(-joystickZero.getY());
-//        rightLifterTalon.set(joystickOne.getY());        
-//        if(joystickZero.getRawButton(1))
-//        {
-//            leftLifterServo.setAngle(0);
-//            rightLifterServo.setAngle(180);
-//        }
-//        if(joystickZero.getRawButton(2))
-//        {
-//            leftLifterServo.setAngle(170);
-//            rightLifterServo.setAngle(10);
-//        }
+        leftLifterTalon.set(-joystickZero.getY());
+        rightLifterTalon.set(joystickOne.getY());        
+        if(joystickZero.getRawButton(1))
+        {
+            leftLifterServo.setAngle(0);
+            rightLifterServo.setAngle(180);
+        }
+        if(joystickZero.getRawButton(2))
+        {
+            leftLifterServo.setAngle(170);
+            rightLifterServo.setAngle(10);
+        }
     }
 }
