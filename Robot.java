@@ -87,17 +87,15 @@ public class Robot extends IterativeRobot
     			
         fileContents = FileReader.readFile("RobotConstants.txt");
         
-        piControllerLifterLeft = new PIController(
-                Double.parseDouble(fileContents.get(27)),
-                Double.parseDouble(fileContents.get(30)));
-        piControllerLifterRight = new PIController(
-                Double.parseDouble(fileContents.get(33)),
-                Double.parseDouble(fileContents.get(36)));
+        double lifterLeftP = Double.parseDouble(fileContents.get(27));
+        double lifterLeftI = Double.parseDouble(fileContents.get(30));
+        double lifterRightP = Double.parseDouble(fileContents.get(33));
+        double lifterRightI = Double.parseDouble(fileContents.get(36));
         
-        double grabberHorizontalI = Double.parseDouble(fileContents.get(59));
         double grabberHorizontalP = Double.parseDouble(fileContents.get(56));
-        double grabberVerticalI = Double.parseDouble(fileContents.get(53));
+        double grabberHorizontalI = Double.parseDouble(fileContents.get(59));
         double grabberVerticalP = Double.parseDouble(fileContents.get(50));
+        double grabberVerticalI = Double.parseDouble(fileContents.get(53));
         
         double accuracyThreshold = Double.parseDouble(fileContents.get(39));
         double openServoPosition = Double.parseDouble(fileContents.get(45));
@@ -126,6 +124,9 @@ public class Robot extends IterativeRobot
                 Double.parseDouble(fileContents.get(92));
         double grabberHorizontalGentleI = 
                 Double.parseDouble(fileContents.get(95));
+        double grabberHorizontalHome = Double.parseDouble(fileContents.get(98));
+        double grabberVerticalHome = Double.parseDouble(fileContents.get(101));
+        double homeHeight = Double.parseDouble(fileContents.get(104));
 
         leftFrontTalon = new CANTalon(CHASSISLEFTFRONTTALONID);
         rightFrontTalon = new CANTalon(CHASSISRIGHTFRONTTALONID);
@@ -162,12 +163,14 @@ public class Robot extends IterativeRobot
         		grabberHorizontalGentleI, horizontalThreshold, 
         		verticalThreshold, canExtendHeight, canGrabHeight, 
         		toteExtendHeight, toteGrabHeight, stepCanExtendHeight, 
-        		stepCanGrabHeight, retractedLocation, pauseDistanceFromObject);
+        		stepCanGrabHeight, retractedLocation, pauseDistanceFromObject,
+        		grabberHorizontalHome, grabberVerticalHome);
         
         toteLifter = new ToteLifter(leftLifterTalon, rightLifterTalon, 
                 leftLifterServo, rightLifterServo, lifterLeftPot, 
-                lifterRightPot, piControllerLifterLeft, piControllerLifterRight, 
-        		accuracyThreshold, openServoPosition, closeServoPosition);
+                lifterRightPot, lifterLeftP, lifterLeftI, lifterRightP, 
+                lifterRightI, accuracyThreshold, openServoPosition, 
+                closeServoPosition, homeHeight);
         
         autonomous = new Autonomous(chassis, infraredDistanceTrigger, 
         		timeIgnore, timeDriveBack, timeDriveAway, 
@@ -188,13 +191,23 @@ public class Robot extends IterativeRobot
                 Double.parseDouble(fileContents.get(92));
         double grabberHorizontalGentleI = 
                 Double.parseDouble(fileContents.get(95));
-        
         grabber.inputPIConstants(grabberVerticalP, grabberVerticalI, 
                 grabberHorizontalP, grabberHorizontalI, 
                 grabberHorizontalGentleP, grabberHorizontalGentleI);
-        System.out.print(grabberHorizontalP + " " + grabberHorizontalI + " ");
-        System.out.println
-                (grabberHorizontalGentleP + " " + grabberHorizontalGentleI);
+        
+        double lifterLeftP = Double.parseDouble(fileContents.get(27));
+        double lifterLeftI = Double.parseDouble(fileContents.get(30));
+        double lifterRightP = Double.parseDouble(fileContents.get(33));
+        double lifterRightI = Double.parseDouble(fileContents.get(36));
+        toteLifter.inputPIConstants(lifterLeftP, lifterLeftI, lifterRightP, 
+                lifterRightI);
+//        System.out.print(grabberHorizontalP + " " + grabberHorizontalI + " ");
+//        System.out.println
+//                (grabberHorizontalGentleP + " " + grabberHorizontalGentleI);
+        
+        toteLifter.zeroPots();
+        leftLifterServo.setAngle(0);
+        rightLifterServo.setAngle(180);
     }
 
     /**
@@ -207,9 +220,7 @@ public class Robot extends IterativeRobot
 
 //        grabber.goToLength(0.689);
         
-//        toteLifter.goToHeight(0.4);
-//        System.out.println(-0.132 * lifterRightPot.getVoltage()
-//                + 0.8485283019);
+        toteLifter.goToHeight(0.4);
     }
 
     /**
@@ -234,6 +245,7 @@ public class Robot extends IterativeRobot
         System.out.print(grabberHorizontalP + " " + grabberHorizontalI + " ");
         System.out.println
                 (grabberHorizontalGentleP + " " + grabberHorizontalGentleI);
+        grabber.zeroPots();
     }
 
     /**
@@ -241,47 +253,24 @@ public class Robot extends IterativeRobot
      */
     public void teleopPeriodic()
     {
-        if(joystickZero.getRawButton(3))
-        {
-            grabber.grabTote();
-        }
-        if(joystickZero.getRawButton(4))
-        {
-            grabber.grabCan();
-        }
-        if(joystickZero.getRawButton(5))
-        {
-            grabber.grabStepCan();
-        }
-        grabber.idle();
-        chassis.setJoystickData(0, 0, 0);
-        chassis.idle();
-//        System.out.print("Vertical: " + (-0.2608156852 * 
-//                grabberVerticalPot.getVoltage() + 1.421847684));
-//        System.out.print(" Horizontal: " + (-0.4364133427 * 
-//                grabberHorizontalPot.getVoltage() + 1.78356027));
-//        System.out.println(" Sonar: " + (2.2121617347 * sonarSensor.getVoltage() 
-//                + 0.0467578232));
-        
-//        grabberVerticalTalon.set(-joystickZero.getY());
-//        grabberHorizontalTalon.set(joystickOne.getY());
-//        System.out.println(sonarSensor.getVoltage());
-//        rightLifterTalon.set(joystickOne.getY());
-//        leftLifterTalon.set(joystickZero.getY());
-        
-//       grabberVerticalTalon.set(joystick.getY());
+//        if(joystickZero.getRawButton(3))
+//        {
+//            grabber.grabTote();
+//        }
+//        if(joystickZero.getRawButton(4))
+//        {
+//            grabber.grabCan();
+//        }
+//        if(joystickZero.getRawButton(5))
+//        {
+//            grabber.grabStepCan();
+//        }
+//        grabber.idle();
 //        chassis.setJoystickData(0, 0, 0);
 //        chassis.idle();
-//        double verticalPotVolt;
-//        double horizontalPotVolt;
-//        verticalPotVolt = grabberVerticalPot.getVoltage();
-//        horizontalPotVolt = grabberHorizontalPot.getVoltage();
-//        System.out.println(horizontalPotVolt);
-//        
-//        System.out.println(-0.2608156852*verticalPotVolt+1.421847684);
-        
-//        System.out.println(
-//        		"Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
+//        System.out.print("Horizontal: " + grabber.m_horizontalPotDistance);
+//        System.out.print(" Vertical: " + grabber.m_verticalPotDistance);
+//        System.out.println(" Sonar: " + grabber.m_sonarDistance);
         
 //    	double x = joystickZero.getX();
 //		double y = joystickZero.getY();
@@ -294,18 +283,10 @@ public class Robot extends IterativeRobot
     
     public void disabledPeriodic()
     {
-//        double verticalPotVolt;
-//        double horizontalPotVolt;
-//        verticalPotVolt = grabberVerticalPot.getVoltage();
-//        horizontalPotVolt = grabberHorizontalPot.getVoltage();
-        
-//        System.out.println(sonarSensor.getVoltage());
-        
-        //System.out.println(
-        //        "Vert: "+verticalPotVolt+"  Hori: "+horizontalPotVolt);
-        //System.out.println(-0.2608156852*verticalPotVolt+1.421847684);
-//        System.out.println(horizontalPotVolt);
-//        System.out.println(-0.132 * lifterRightPot.getVoltage() + 0.8485283019);
+//        grabber.mapSensors();
+//        System.out.print("Horizontal: " + grabber.m_horizontalPotDistance);
+//        System.out.print(" Vertical: " + grabber.m_verticalPotDistance);
+//        System.out.println(" Sonar: " + grabber.m_sonarDistance);
     }
 
     /**
@@ -315,24 +296,9 @@ public class Robot extends IterativeRobot
     {
         grabberVerticalTalon.set(-joystickZero.getY());
         grabberHorizontalTalon.set(joystickOne.getY());
-//        System.out.print("Vertical: " + (-0.2608156852 * 
-//                grabberVerticalPot.getVoltage() + 1.421847684));
-//        System.out.print(" Horizontal: " + (-0.4364133427 * 
-//                grabberHorizontalPot.getVoltage() + 1.78356027));
-//        System.out.println(" Sonar: " + (2.2121617347 * sonarSensor.getVoltage() 
-//                + 0.0467578232));
-        
-//        System.out.println(-0.132 * lifterRightPot.getVoltage() + 0.8485283019);
         
 //        leftLifterTalon.set(-joystickZero.getY());
-//        rightLifterTalon.set(joystickOne.getY());
-        
-//        System.out.print("Left: " + lifterLeftPot.getVoltage());
-//        System.out.println(" Right: " + lifterRightPot.getVoltage());
-////        System.out.print("Left: " + leftLifterTalon.getOutputCurrent());
-////        System.out.println(" Right: " + rightLifterTalon.getOutputCurrent());
-////        rightLifterTalon.getOutputCurrent();
-        
+//        rightLifterTalon.set(joystickOne.getY());        
 //        if(joystickZero.getRawButton(1))
 //        {
 //            leftLifterServo.setAngle(0);

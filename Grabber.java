@@ -29,6 +29,9 @@ public class Grabber
     double m_horizontalThreshold;
     double m_verticalThreshold;
     
+    double m_horizontalHome;
+    double m_verticalHome;
+    
     double m_toteExtendHeight;
     double m_toteGrabHeight;
     double m_canExtendHeight;
@@ -46,6 +49,8 @@ public class Grabber
     double m_gentleHorizontalP;
     double m_gentleHorizontalI;
 
+    double m_horizontalYIntercept;
+    double m_verticalYIntercept;
     // Switch state variables
     String m_horizontalState;
     String m_verticalState;
@@ -66,7 +71,8 @@ public class Grabber
             double canExtendHeight, double canGrabHeight, 
             double toteExtendHeight, double toteGrabHeight, 
             double stepCanExtendHeight, double stepCanGrabHeight,
-            double retractedLocation, double pauseDistanceFromObject)
+            double retractedLocation, double pauseDistanceFromObject,
+            double horizontalHome, double verticalHome)
     {
         verticalTalon = verticalCANTalon;
         horizontalTalon = horizontalCANTalon;
@@ -90,6 +96,8 @@ public class Grabber
         m_verticalState = "waitForCommand";
         m_horizontalThreshold = horizontalThreshold;
         m_verticalThreshold = verticalThreshold;
+        m_horizontalHome = horizontalHome;
+        m_verticalHome = verticalHome;
     }
 
     /**
@@ -140,8 +148,7 @@ public class Grabber
     
     void goToHeight(double height)
     {
-        m_verticalPotDistance = -0.2608156852* verticalPot.getVoltage()
-                + 1.421847684;
+        mapSensors();
         verticalTalon.set(-verticalPI.getMotorValue(
                 height, m_verticalPotDistance));
         System.out.println(m_verticalPotDistance);
@@ -149,24 +156,36 @@ public class Grabber
     
     void goToLength(double length)
     {
-        m_horizontalPotDistance = -0.4364133427* horizontalPot.getVoltage()
-                + 1.78356027;
+        mapSensors();
         horizontalTalon.set(-horizontalPI.getMotorValue
                 (length, m_horizontalPotDistance));
         System.out.println(m_horizontalPotDistance);
     }
+    
+    void mapSensors()
+    {
+        m_sonarDistance = 2.2121617347 * sonar.getVoltage() + 0.0567578232;
+        m_horizontalPotDistance = -0.4364133427 * horizontalPot.getVoltage()
+                + m_horizontalYIntercept;
+        m_verticalPotDistance = -0.2608156852 * verticalPot.getVoltage()
+                + m_verticalYIntercept;
+    }
 
+    void zeroPots()
+    {
+        m_horizontalYIntercept = 
+                m_horizontalHome - (-0.4364133427 * horizontalPot.getVoltage());
+        m_verticalYIntercept = 
+                m_verticalHome - (-0.2608156852 * verticalPot.getVoltage());
+    }
+    
     /**
      * Handles the state machine for the motion of the vertical and horizonal
      * motors, must be run every loop in order for the Grabber to operate
      */
     void idle()
     {
-        m_horizontalPotDistance = -0.4364133427* horizontalPot.getVoltage()
-                + 1.78356027;
-        m_verticalPotDistance = -0.2608156852* verticalPot.getVoltage()
-                + 1.421847684;
-        m_sonarDistance = 2.2121617347 * sonar.getVoltage() + 0.0467578232;
+        mapSensors();
         System.out.println("HorizontalState: " + m_horizontalState);
         System.out.println("VerticalState:                                                " + m_verticalState);
 

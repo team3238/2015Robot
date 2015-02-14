@@ -27,24 +27,33 @@ public class ToteLifter
     String m_stateMode;
     double m_threshold;
     boolean totesDropped;
+    double m_homeHeight;
+    
+    double m_leftHeight;
+    double m_rightHeight;
 
+    double m_leftPotYIntercept;
+    double m_rightPotYIntercept;
+    
     ToteLifter(CANTalon leftLift, CANTalon rightLift, Servo leftServo, 
             Servo rightServo, AnalogInput potentiometerLeft, 
-            AnalogInput potentiometerRight, PIController piContLeft, 
-            PIController piContRight, double accuracyThreshold, 
-            double openServoPosition, double closeServoPosition)
+            AnalogInput potentiometerRight, double leftP, double leftI, 
+            double rightP, double rightI, double accuracyThreshold, 
+            double openServoPosition, double closeServoPosition, 
+            double homeHeight)
     {
-        m_threshold = accuracyThreshold;
-        m_openServoPosition = openServoPosition;
-        m_closeServoPosition = closeServoPosition;
         liftTalonLeft = leftLift;
         liftTalonRight = rightLift;
         leftLifterServo = leftServo;
         rightLifterServo = rightServo;
         leftPot = potentiometerLeft;
         rightPot = potentiometerRight;
-        piControllerLeft = piContLeft;
-        piControllerRight = piContRight;
+        piControllerLeft = new PIController(leftP, leftI);
+        piControllerRight = new PIController(rightP, rightI);
+        m_threshold = accuracyThreshold;
+        m_openServoPosition = openServoPosition;
+        m_closeServoPosition = closeServoPosition;
+        m_homeHeight = homeHeight;
     }
 
     /**
@@ -55,6 +64,18 @@ public class ToteLifter
         m_stateIndex = "Nothing";
         m_stateMode = "Nothing";
         totesDropped = false;
+    }
+    
+    void zeroPots()
+    {
+        m_leftPotYIntercept = m_homeHeight - (0.132 * leftPot.getVoltage());
+        m_rightPotYIntercept = m_homeHeight - (-0.132 * rightPot.getVoltage());
+    }
+    
+    void mapPots()
+    {
+        m_leftHeight =  0.132 * leftPot.getVoltage() + m_leftPotYIntercept;
+        m_rightHeight = -0.132 * rightPot.getVoltage() + m_rightPotYIntercept;
     }
 
     /**
@@ -81,20 +102,6 @@ public class ToteLifter
         piControllerLeft.inputConstants(leftPConstant, leftIConstant);
         piControllerRight.inputConstants(rightPConstant, rightIConstant);
     }
-    
-    void rightLifterGoToHeight(double height)
-    {
-        double currentHeight = -0.132 * rightPot.getVoltage() + 0.8485283019;
-        if(Math.abs(height - currentHeight) > m_threshold)
-            {
-            liftTalonRight.set(piControllerRight.getMotorValue
-                (height, currentHeight));
-            }
-        else
-        {
-            liftTalonRight.set(0);
-        }
-    }
 
     /**
      * Moves the tote lifter to a desired position
@@ -107,22 +114,21 @@ public class ToteLifter
         boolean leftDone = false;
         boolean rightDone = false;
         boolean positionReached = false;
-        double leftHeight = 0.132 * leftPot.getVoltage() + 0.2025183198;
-        double rightHeight = -0.132 * rightPot.getVoltage() + 0.8485283019;
+        mapPots();
         
-        if(Math.abs(setpoint - leftHeight) > m_threshold)
+        if(Math.abs(setpoint - m_leftHeight) > m_threshold)
         {
             liftTalonLeft.set(-piControllerLeft.getMotorValue
-                    (setpoint, leftHeight));
+                    (setpoint, m_leftHeight));
         }
         else
         {
             liftTalonLeft.set(0);
         }
-        if(Math.abs(setpoint - rightHeight) > m_threshold)
+        if(Math.abs(setpoint - m_rightHeight) > m_threshold)
         {
             liftTalonRight.set(piControllerRight.getMotorValue
-                    (setpoint, rightHeight));
+                    (setpoint, m_rightHeight));
         }
         else
         {
@@ -136,7 +142,7 @@ public class ToteLifter
     }
 
     /**
-     * Sets the states to start the droping phases
+     * Sets the states to start the dropping phases
      */
     void dropTotes()
     {
@@ -166,7 +172,7 @@ public class ToteLifter
      * Controls the phases that the tote lifter goes through when it runs, this
      * must be called every loop for the tote lifter to operate
      */
-    //TO-DO All states need comments
+    //TODO All states need comments
     void idle()
     {
         totesDropped = false;
@@ -178,7 +184,7 @@ public class ToteLifter
             case "AddTote":
                 switch(m_stateIndex)
                 {
-                    //TO-DO: Why is this state here?
+                    //TODO: Why is this state here?
                 	//This state is here to be more efficient 
                     case "Nothing":
                         break;

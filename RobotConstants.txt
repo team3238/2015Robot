@@ -94,3 +94,12 @@ grabberGentleHorizontalP
 
 grabberGentleHorizontalI
 0
+
+grabberHorizontalHome
+0.120
+
+grabberVerticalHome
+0.161
+
+homeHeight
+0.199
