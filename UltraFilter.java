@@ -24,6 +24,7 @@ public class UltraFilter
 	public double getMedian()
 	{
 		double sortedArray[] = new double[m_data.length];
+		int zeroCount = 0;
 		
 		for(int i = 0; i < sortedArray.length; i++)
 		{
@@ -32,6 +33,28 @@ public class UltraFilter
 		
 		Arrays.sort(sortedArray);
 		
-		return sortedArray[sortedArray.length/2];
+		for(int i = 0; i < sortedArray.length; i++)
+		{
+			if(sortedArray[i] == 0)
+			{
+				zeroCount++;
+			}
+		}
+		
+		if(zeroCount == 0)
+		{
+			return sortedArray[sortedArray.length/2];
+		}
+		else
+		{
+			if(zeroCount == 1)
+			{
+				return sortedArray[1];
+			}
+			else
+			{
+				return sortedArray[2];
+			}
+		}
 	}
 }
