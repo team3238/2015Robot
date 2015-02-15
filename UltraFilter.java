@@ -8,9 +8,9 @@ public class UltraFilter
 	int m_index;
 	
 	
-	UltraFilter(int length)
+	UltraFilter()
 	{
-		m_data = new double[length];
+		m_data = new double[3];
 		m_index = 0;
 	}
 	

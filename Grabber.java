@@ -14,6 +14,7 @@ public class Grabber
     CANTalon verticalTalon, horizontalTalon;
     AnalogInput verticalPot, horizontalPot, sonar;
     PIController verticalPI, horizontalPI;
+    UltraFilter ultrasonicFilter;
 
     // Store sensor values
     double m_horizontalPotDistance;
@@ -91,6 +92,8 @@ public class Grabber
         verticalPI = new PIController(verticalPConstant, verticalIConstant);
         horizontalPI =
                 new PIController(horizontalPConstant, horizontalIConstant);
+        
+        ultrasonicFilter = new UltraFilter();
         
         verticalPI.setThrottle(1.0);
         horizontalPI.setThrottle(0.7);
@@ -212,8 +215,8 @@ public class Grabber
     
     void mapSensors()
     {
-        m_sonarDistance = 2.2121617347 * sonar.getVoltage() 
-                + 0.09;
+        ultrasonicFilter.addData(2.2121617347 * sonar.getVoltage() + 0.09);
+        m_sonarDistance = ultrasonicFilter.getMedian();
         m_horizontalPotDistance = -0.4364133427 * 
                 horizontalPot.getAverageVoltage() + m_horizontalYIntercept;
         m_verticalPotDistance = -0.2608156852 * verticalPot.getAverageVoltage()
