@@ -153,7 +153,7 @@ public class Robot extends IterativeRobot
         leftLifterServo = new Servo(SERVOLEFTPORT);
         rightLifterServo = new Servo(SERVORIGHTPORT);
    
-        setSubsytemConstants();
+        setSubsystemConstants();
       
         chassis = new Chassis(leftFrontTalon,
                 leftRearTalon, rightFrontTalon,
@@ -239,7 +239,7 @@ public class Robot extends IterativeRobot
 
     public void reinputConstants()
     {
-        setSubsytemConstants();
+        setSubsystemConstants();
 
         grabber.inputConstants(m_grabberVerticalP, m_grabberVerticalI, 
                 m_grabberHorizontalP, m_grabberHorizontalI, 
@@ -249,7 +249,7 @@ public class Robot extends IterativeRobot
                 m_stepCanExtendHeight, m_stepCanGrabHeight, m_retractedLocation, 
                 m_pauseDistanceFromObject, m_grabberHorizontalHome, 
                 m_grabberVerticalHome, m_slowDownRetractThreshold);
-        toteLifter.inputConstants(lifterRightPot, m_lifterLeftP, m_lifterLeftI,
+        toteLifter.inputConstants(m_lifterLeftP, m_lifterLeftI,
                 m_lifterRightP, m_lifterRightI, m_lifterAccuracyThreshold, 
                 m_lifterHomeHeight, m_lifterWaitLiftPosition, 
                 m_lifterOpenDogsLiftPosition, m_lifterCloseDogsLiftPosition);

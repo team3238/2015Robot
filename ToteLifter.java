@@ -72,7 +72,7 @@ public class ToteLifter
         totesDropped = false;
     }
 
-    void inputConstats(double leftP, double leftI, 
+    void inputConstants(double leftP, double leftI, 
         double rightP, double rightI, double accuracyThreshold, 
         double homeHeight, double waitLiftPosition, 
         double openDogsLiftPosition, double closeDogsLiftPosition)
