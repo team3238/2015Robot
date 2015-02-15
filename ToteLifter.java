@@ -30,6 +30,7 @@ public class ToteLifter
     String m_stateMode;
     String m_addSubstate;
     String m_dropSubstate;
+    String m_dropFullState;
     
     double m_threshold;
     boolean totesDropped;
@@ -60,13 +61,14 @@ public class ToteLifter
         piControllerRight = new PIController(rightP, rightI);
         m_threshold = accuracyThreshold;
         m_homeHeight = homeHeight;
-        m_collectLiftPosition = homeHeight - 0.0586;
+        m_collectLiftPosition = homeHeight - 0.03;
         m_waitLiftPosition = waitLiftPosition + 0.06;
         m_openDogsLiftPosition = openDogsLiftPosition;
-        m_closeDogsLiftPosition = closeDogsLiftPosition + 0.025;
+        m_closeDogsLiftPosition = closeDogsLiftPosition;
         m_stateMode = "AddTote";
         m_addSubstate = "GoToWaitLiftPosition";
         m_dropSubstate = "WaitForCommand";
+        m_dropFullState = "WaitForCommand";
         totesDropped = false;
     }
 
@@ -77,6 +79,7 @@ public class ToteLifter
     {
         m_addSubstate = "GoToWaitLiftPosition";
         m_dropSubstate = "WaitForCommand";
+        m_dropFullState = "WaitForCommand";
         totesDropped = false;
     }
     
@@ -151,6 +154,7 @@ public class ToteLifter
             leftTalon.set(0);
             leftDone = true;
         }
+        
         if(Math.abs(setpoint - m_rightHeight) > m_threshold)
         {
             rightTalon.set(piControllerRight.getMotorValue
@@ -161,9 +165,16 @@ public class ToteLifter
             rightTalon.set(0);
             rightDone = true;
         }
+        
         if(leftDone && rightDone)
         {
             positionReached = true;
+        }
+        
+        if(leftTalon.getOutputCurrent() > 16 || rightTalon.getOutputCurrent() > 16)
+        {
+            positionReached = true;
+            zeroPots();
         }
         return positionReached;
     }
@@ -175,6 +186,22 @@ public class ToteLifter
     {
         m_dropSubstate = "GoToOpenDogsPosition";
         m_stateMode = "DropTotes";
+        piControllerLeft.reinit();
+        piControllerRight.reinit();
+    }
+    
+    void dropFullTotes()
+    {
+        m_dropFullState = "GoToLiftPosition";
+        m_stateMode = "DropFullTotes";
+        piControllerLeft.reinit();
+        piControllerRight.reinit();
+    }
+    
+    void dropAllTotes()
+    {
+        m_dropFullState = "GoToPointFour";
+        m_stateMode = "DropFullTotes";
         piControllerLeft.reinit();
         piControllerRight.reinit();
     }
@@ -214,6 +241,67 @@ public class ToteLifter
         	case "WaitForCommand":
         		leftTalon.set(0);
         		rightTalon.set(0);
+        	    break;
+        	    
+        	case "DropFullTotes":
+        	    switch(m_dropFullState)
+        	    {
+        	        case"WaitForCommand":
+        	            
+        	            break;
+        	            
+        	        case "GoToLiftPosition":
+                        if(goToHeight(m_collectLiftPosition))
+                        {
+                            m_dropFullState = "GoToFullPosition";
+                            piControllerLeft.reinit();
+                            piControllerRight.reinit();
+                        }
+                        break;
+        	            
+        	        case "GoToFullPosition":
+        	            System.out.println("Left Height: "+ m_leftHeight + "             Right Height: "+m_rightHeight);
+                        if(goToHeight(0.330))
+                        {
+                            m_dropFullState = "WaitForCommand";
+                            piControllerLeft.reinit();
+                            piControllerRight.reinit();
+                            m_timeStamp = System.currentTimeMillis();
+                            leftTalon.set(0);
+                            rightTalon.set(0);
+                        }
+                        break;
+                        
+        	        case "GoToPointFour":
+        	            if(goToHeight(0.4))
+                        {
+                            m_dropFullState = "OpenDogs";
+                            piControllerLeft.reinit();
+                            piControllerRight.reinit();
+                            m_timeStamp = System.currentTimeMillis();
+                        }
+        	            break;
+        	            
+        	        case "OpenDogs":
+                        openDogs();
+                        leftTalon.set(0);
+                        rightTalon.set(0);
+                        if(System.currentTimeMillis() - m_timeStamp > 1000)
+                        {
+                            m_dropFullState = "GoToLastLiftPosition";
+                        }
+                        break;
+                        
+        	        case "GoToLastLiftPosition":
+                        if(goToHeight(m_collectLiftPosition))
+                        {
+                            m_dropFullState = "WaitForCommand";
+                        }
+                        break;
+                        
+                    default:
+                        break;
+        	    }
         	    break;
         		
             case "AddTote":
@@ -286,9 +374,10 @@ public class ToteLifter
                         break;
 
                     case "GoToOpenDogsPosition":
-                        if(goToHeight(m_openDogsLiftPosition))
+                        if(goToHeight(m_closeDogsLiftPosition))
                         {
                             m_dropSubstate = "OpenDogs";
+                            m_timeStamp = System.currentTimeMillis();
                             piControllerLeft.reinit();
                             piControllerRight.reinit();
                         }
@@ -296,7 +385,10 @@ public class ToteLifter
 
                     case "OpenDogs":
                         openDogs();
-                        m_dropSubstate = "GoToLiftPosition";
+                        if(System.currentTimeMillis() - m_timeStamp > 500)
+                        {
+                            m_dropSubstate = "GoToLiftPosition";
+                        }
                         break;
 
                     case "GoToLiftPosition":

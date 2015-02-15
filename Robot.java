@@ -278,6 +278,14 @@ public class Robot extends IterativeRobot
         {
             toteLifter.addTote();
         }
+        if(joystickZero.getRawButton(3))
+        {
+            toteLifter.dropFullTotes();
+        }
+        if(joystickZero.getRawButton(4))
+        {
+            toteLifter.dropAllTotes();
+        }
 //        if(joystickZero.getRawButton(3))
 //        {
 //            grabber.grabTote();
@@ -298,17 +306,20 @@ public class Robot extends IterativeRobot
 //        {
 //            grabber.goHome();
 //        }
-//        toteLifter.idle();
+        toteLifter.idle();
         grabber.idle();
         chassis.setJoystickData(0, 0, 0);
         chassis.idle();
+        //System.out.print("Left: " + leftLifterTalon.getOutputCurrent());
+        //System.out.println(" Right: " + rightLifterTalon.getOutputCurrent());
 //        System.out.print(toteLifter.m_addSubstate);
+        System.out.println(toteLifter.m_dropFullState);
 //        System.out.print(" Left: " + toteLifter.m_leftHeight);
 //        System.out.println(" Right: " + toteLifter.m_rightHeight);
         
         //System.out.print("horizontalState: " + grabber.m_canHorizontalState);
         //System.out.print(" verticalState: " + grabber.m_verticalState);
-        System.out.print(" Horizontal: " + grabber.m_horizontalPotDistance);
+//        System.out.print(" Horizontal: " + grabber.m_horizontalPotDistance);
         //System.out.print(" Vertical: " + grabber.m_verticalPotDistance);
         //System.out.println(" Sonar: " + grabber.m_sonarDistance);
         

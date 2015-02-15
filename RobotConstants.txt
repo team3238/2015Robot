@@ -37,7 +37,7 @@ iConstantRight
 .5
 
 accuracy threshold for lifter 
-0.05
+0.02
 
 servo close position
 30
@@ -108,10 +108,10 @@ lifterWaitLiftPosition
 0.45
 
 lifterOpenDogsLiftPosition
-0.543
+0.443
 
 lifterCloseDogsLiftPosition
-0.634
+0.629
 
 slowDownRetractThreshold
 0.5

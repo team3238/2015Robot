@@ -232,7 +232,6 @@ public class Grabber
     void idle()
     {
         mapSensors();
-        System.out.println(""+m_verticalDone);
 
         switch(m_toteHorizontalState)
         {
