@@ -260,7 +260,7 @@ public class Robot extends IterativeRobot
         System.out.print(grabberHorizontalP + " " + grabberHorizontalI + " ");
         System.out.println
                 (grabberHorizontalGentleP + " " + grabberHorizontalGentleI);
-        grabber.zeroPots();
+        //grabber.zeroPots();
         toteLifter.reinit();
         toteLifter.zeroPots();
     }
@@ -270,26 +270,34 @@ public class Robot extends IterativeRobot
      */
     public void teleopPeriodic()
     {
-//        if(joystickZero.getRawButton(1))
+        if(joystickZero.getRawButton(1))
+        {
+            toteLifter.dropTotes();
+        }
+        if(joystickZero.getRawButton(2))
+        {
+            toteLifter.addTote();
+        }
+//        if(joystickZero.getRawButton(3))
 //        {
-//            toteLifter.dropTotes();
+//            grabber.grabTote();
 //        }
-//        if(joystickZero.getRawButton(2))
+//        if(joystickZero.getRawButton(4))
 //        {
-//            toteLifter.addTote();
+//            grabber.grabCan();
 //        }
-        if(joystickZero.getRawButton(3))
-        {
-            grabber.grabTote();
-        }
-        if(joystickZero.getRawButton(4))
-        {
-            grabber.grabCan();
-        }
-        if(joystickZero.getRawButton(5))
-        {
-            grabber.grabStepCan();
-        }
+//        if(joystickZero.getRawButton(5))
+//        {
+//            grabber.grabStepCan();
+//        }
+//        if(joystickZero.getRawButton(11))
+//        {
+//            grabber.zeroPots();
+//        }
+//        if(joystickZero.getRawButton(12))
+//        {
+//            grabber.goHome();
+//        }
 //        toteLifter.idle();
         grabber.idle();
         chassis.setJoystickData(0, 0, 0);
@@ -298,11 +306,11 @@ public class Robot extends IterativeRobot
 //        System.out.print(" Left: " + toteLifter.m_leftHeight);
 //        System.out.println(" Right: " + toteLifter.m_rightHeight);
         
-        System.out.print("horizontalState: " + grabber.m_canHorizontalState);
-        System.out.print(" verticalState: " + grabber.m_verticalState);
+        //System.out.print("horizontalState: " + grabber.m_canHorizontalState);
+        //System.out.print(" verticalState: " + grabber.m_verticalState);
         System.out.print(" Horizontal: " + grabber.m_horizontalPotDistance);
-        System.out.print(" Vertical: " + grabber.m_verticalPotDistance);
-        System.out.println(" Sonar: " + grabber.m_sonarDistance);
+        //System.out.print(" Vertical: " + grabber.m_verticalPotDistance);
+        //System.out.println(" Sonar: " + grabber.m_sonarDistance);
         
 //    	double x = joystickZero.getX();
 //		double y = joystickZero.getY();
@@ -326,8 +334,8 @@ public class Robot extends IterativeRobot
      */
     public void testPeriodic()
     {
-        grabberVerticalTalon.set(-joystickTwo.getY());
-        grabberHorizontalTalon.set(joystickTwo.getX());
+//        grabberVerticalTalon.set(-joystickTwo.getY());
+//        grabberHorizontalTalon.set(joystickTwo.getX());
         
         leftLifterTalon.set(-joystickZero.getY());
         rightLifterTalon.set(joystickOne.getY());        

@@ -63,7 +63,7 @@ canExtendHeight
 0.391
 
 canGrabHeight
-0.796
+0.85
 
 toteExtendHeight
 0.165
@@ -81,7 +81,7 @@ retractedLocation
 0.120
 
 horizontalThreshold
-0.01
+0.03
 
 verticalThreshold
 0.01
@@ -90,7 +90,7 @@ pauseDistanceFromObject
 0.25
 
 grabberGentleHorizontalP
-5
+8
 
 grabberGentleHorizontalI
 0.4
@@ -114,4 +114,4 @@ lifterCloseDogsLiftPosition
 0.634
 
 slowDownRetractThreshold
-0.2
+0.5

@@ -14,7 +14,6 @@ public class Grabber
     CANTalon verticalTalon, horizontalTalon;
     AnalogInput verticalPot, horizontalPot, sonar;
     PIController verticalPI, horizontalPI;
-    UltrasonicFilter ultrasonicFilter;
 
     // Store sensor values
     double m_horizontalPotDistance;
@@ -68,6 +67,7 @@ public class Grabber
     boolean m_horizontalExtended = false;
     boolean m_verticalDone = false;
     boolean m_foundReadPosition = false;
+    boolean m_horizontalFoundHome = false;
 
     Grabber(CANTalon verticalCANTalon, CANTalon horizontalCANTalon,
     		AnalogInput  grabberVerticalPot, AnalogInput  grabberHorizontalPot,
@@ -91,6 +91,10 @@ public class Grabber
         verticalPI = new PIController(verticalPConstant, verticalIConstant);
         horizontalPI =
                 new PIController(horizontalPConstant, horizontalIConstant);
+        
+        verticalPI.setThrottle(1.0);
+        horizontalPI.setThrottle(0.7);
+        
         m_gentleHorizontalP = gentleHorizontalP;
         m_gentleHorizontalI = gentleHorizontalI;
         m_canExtendHeight = canExtendHeight;
@@ -109,7 +113,6 @@ public class Grabber
         m_verticalHome = verticalHome;
         m_slowDownRetractThreshold = slowDownRetractThreshold;
         m_retractedLocation = retractedLocation;
-        ultrasonicFilter = new UltrasonicFilter(3);
     }
 
     /**
@@ -180,7 +183,7 @@ public class Grabber
     void mapSensors()
     {
         m_sonarDistance = 2.2121617347 * sonar.getVoltage() 
-                + 0.04;
+                + 0.09;
         m_horizontalPotDistance = -0.4364133427 * 
                 horizontalPot.getAverageVoltage() + m_horizontalYIntercept;
         m_verticalPotDistance = -0.2608156852 * verticalPot.getAverageVoltage()
@@ -195,6 +198,13 @@ public class Grabber
         m_verticalYIntercept = 
                 m_verticalHome 
                 - (-0.2608156852 * verticalPot.getAverageVoltage());
+    }
+    
+    void goHome()
+    {
+        m_toteHorizontalState = "goHome";
+        m_verticalState = "goHome";
+        m_horizontalFoundHome = false;
     }
     
     double limitPIOutput(double motorPower)
@@ -229,6 +239,21 @@ public class Grabber
             case "waitForCommand":
                 m_toteHorizontalSetpoint = m_sonarDistance;
                 horizontalPI.reinit();
+                break;
+                
+            case "goHome":
+                if(Math.abs(m_horizontalHome - m_horizontalPotDistance + 0.02) 
+                        > m_horizontalThreshold)
+                {
+                    horizontalTalon.set(-horizontalPI.getMotorValue(
+                            m_horizontalHome, m_horizontalPotDistance));
+                }
+                else
+                {
+                    m_toteHorizontalState = "waitForCommand";
+                    m_horizontalFoundHome = true;
+                    horizontalTalon.set(0);
+                }
                 break;
 
             case "extending":
@@ -298,7 +323,7 @@ public class Grabber
                 {
                     
                     horizontalTalon.set(
-                            0.5 * limitPIOutput(horizontalPI.getMotorValue(
+                            1 * limitPIOutput(horizontalPI.getMotorValue(
                             m_retractedLocation, m_horizontalPotDistance)));
                 }
                 else
@@ -403,7 +428,7 @@ public class Grabber
                 {
                     
                     horizontalTalon.set(
-                            0.5 * limitPIOutput(horizontalPI.getMotorValue(
+                            -0.5 * limitPIOutput(horizontalPI.getMotorValue(
                             m_retractedLocation, m_horizontalPotDistance)));
                 }
                 else
@@ -426,6 +451,25 @@ public class Grabber
                 verticalTalon.set(0);
                 verticalPI.reinit();
                 break;
+                
+            case "goHome":
+                if(m_horizontalFoundHome)
+                {
+                    if(Math.abs(m_verticalHome - m_verticalPotDistance) 
+                            > m_verticalThreshold)
+                    {
+                        verticalTalon.set(-verticalPI.getMotorValue(
+                                m_verticalHome, m_verticalPotDistance));
+                    }
+                    else
+                    {
+                        m_verticalState = "waitForCommand";
+                        m_horizontalFoundHome = false;
+                        verticalTalon.set(0);
+                    }
+                }
+                    
+                break;
 
             case "prepareForToteGrab":
                 m_extendHeight = m_toteExtendHeight;
@@ -446,7 +490,7 @@ public class Grabber
                 break;
                 
             case "goToReadHeight":
-                m_extendHeight = 0.5;
+                m_extendHeight = 0.6;
                 if(Math.abs(m_extendHeight - m_verticalPotDistance) 
                         > m_verticalThreshold && !m_foundReadPosition)
                 {

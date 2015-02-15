@@ -11,11 +11,13 @@ public class PIController
     double m_oldTime = 0;
     double m_pConstant;
     double m_iConstant;
+    double m_throttle;
 
     PIController(double pConstant, double iConstant)
     {
         m_pConstant = pConstant;
         m_iConstant = iConstant;
+        m_throttle = 1.0;
     }
 
     /**
@@ -56,7 +58,7 @@ public class PIController
         }
         // Set up the "old" values for the next loop
         m_oldTime = time;
-        return returnPower;
+        return limitOutput(returnPower)*m_throttle;
     }
 
     /**
@@ -72,5 +74,28 @@ public class PIController
     {
         m_pConstant = pConstant;
         m_iConstant = iConstant;
+    }
+    
+    void setThrottle(double throttle)
+    {
+        m_throttle = throttle;
+    }
+    
+    double limitOutput(double motorPower)
+    {
+        double returnPower;
+        if(motorPower > 1.0)
+        {
+            returnPower = 1.0;
+        }
+        else if(motorPower < -1.0)
+        {
+            returnPower = -1.0;
+        }
+        else
+        {
+            returnPower = motorPower;
+        }
+        return returnPower;
     }
 }
