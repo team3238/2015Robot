@@ -19,7 +19,6 @@ import edu.wpi.first.wpilibj.Servo;
  */
 public class Robot extends IterativeRobot
 {
-
     Autonomous autonomous;
     Chassis chassis;
     PIController piControllerGrabber;
@@ -37,7 +36,7 @@ public class Robot extends IterativeRobot
     ArrayList<String> fileContents;
     AnalogInput grabberVerticalPot, grabberHorizontalPot;
     AnalogInput lifterLeftPot, lifterRightPot;
-    Joystick joystickZero, joystickOne;
+    Joystick joystickZero, joystickOne, joystickTwo;
     Servo leftLifterServo, rightLifterServo;
 
     /**
@@ -84,6 +83,7 @@ public class Robot extends IterativeRobot
     			
 		joystickZero = new Joystick(JOYSTICKPORT);
 		joystickOne = new Joystick(1);
+		joystickTwo = new Joystick(2);
     			
         fileContents = FileReader.readFile("RobotConstants.txt");
         
@@ -98,8 +98,6 @@ public class Robot extends IterativeRobot
         double grabberVerticalI = Double.parseDouble(fileContents.get(53));
         
         double accuracyThreshold = Double.parseDouble(fileContents.get(39));
-        double openServoPosition = Double.parseDouble(fileContents.get(45));
-        double closeServoPosition = Double.parseDouble(fileContents.get(42));
         
         double spinThreshold = Double.parseDouble(fileContents.get(22));
         double infraredDistanceTrigger = 
@@ -126,8 +124,18 @@ public class Robot extends IterativeRobot
                 Double.parseDouble(fileContents.get(95));
         double grabberHorizontalHome = Double.parseDouble(fileContents.get(98));
         double grabberVerticalHome = Double.parseDouble(fileContents.get(101));
-        double homeHeight = Double.parseDouble(fileContents.get(104));
-
+        
+        double lifterHomeHeight = Double.parseDouble(fileContents.get(104));
+        double lifterWaitLiftPosition = Double.parseDouble
+                (fileContents.get(107));
+        double lifterOpenDogsLiftPosition = Double.parseDouble
+                (fileContents.get(110));
+        double lifterCloseDogsLiftPosition = Double.parseDouble
+                (fileContents.get(113));
+        
+        double slowDownRetractThreshold = 
+                Double.parseDouble(fileContents.get(116));
+        
         leftFrontTalon = new CANTalon(CHASSISLEFTFRONTTALONID);
         rightFrontTalon = new CANTalon(CHASSISRIGHTFRONTTALONID);
         leftRearTalon = new CANTalon(CHASSISLEFTREARTALONID);
@@ -137,6 +145,8 @@ public class Robot extends IterativeRobot
         grabberHorizontalTalon = new CANTalon(GRABBERHORIZONTALTALONID);
         grabberVerticalPot = new AnalogInput(GRABBERVERTICALPOTPORT);
         grabberHorizontalPot = new AnalogInput(GRABBERHORIZONTALPOTPORT);
+        grabberVerticalPot.setAverageBits(2);
+        grabberHorizontalPot.setAverageBits(2);
         
         reflectSensorFront = new DigitalInput(REFLECTSENSORFRONTPORT);
         reflectSensorRear = new DigitalInput(REFLECTSENSORREARPORT);
@@ -149,6 +159,8 @@ public class Robot extends IterativeRobot
         rightLifterTalon = new CANTalon(LIFTERRIGHTTALONID);
         lifterLeftPot = new AnalogInput(LIFTERLEFTPOTPORT);
         lifterRightPot = new AnalogInput(LIFTERRIGHTPOTPORT);
+        lifterLeftPot.setAverageBits(2);
+        lifterRightPot.setAverageBits(2);
         leftLifterServo = new Servo(SERVOLEFTPORT);
         rightLifterServo = new Servo(SERVORIGHTPORT);
         
@@ -163,14 +175,16 @@ public class Robot extends IterativeRobot
         		grabberHorizontalGentleI, horizontalThreshold, 
         		verticalThreshold, canExtendHeight, canGrabHeight, 
         		toteExtendHeight, toteGrabHeight, stepCanExtendHeight, 
-        		stepCanGrabHeight, retractedLocation, pauseDistanceFromObject,
-        		grabberHorizontalHome, grabberVerticalHome);
+        		stepCanGrabHeight, retractedLocation, pauseDistanceFromObject, 
+        		grabberHorizontalHome, grabberVerticalHome,
+        		slowDownRetractThreshold);
         
         toteLifter = new ToteLifter(leftLifterTalon, rightLifterTalon, 
                 leftLifterServo, rightLifterServo, lifterLeftPot, 
                 lifterRightPot, lifterLeftP, lifterLeftI, lifterRightP, 
-                lifterRightI, accuracyThreshold, openServoPosition, 
-                closeServoPosition, homeHeight);
+                lifterRightI, accuracyThreshold, lifterHomeHeight, 
+                lifterWaitLiftPosition, lifterOpenDogsLiftPosition, 
+                lifterCloseDogsLiftPosition);
         
         autonomous = new Autonomous(chassis, infraredDistanceTrigger, 
         		timeIgnore, timeDriveBack, timeDriveAway, 
@@ -247,6 +261,8 @@ public class Robot extends IterativeRobot
         System.out.println
                 (grabberHorizontalGentleP + " " + grabberHorizontalGentleI);
         grabber.zeroPots();
+        toteLifter.reinit();
+        toteLifter.zeroPots();
     }
 
     /**
@@ -254,24 +270,39 @@ public class Robot extends IterativeRobot
      */
     public void teleopPeriodic()
     {
-//        if(joystickZero.getRawButton(3))
+//        if(joystickZero.getRawButton(1))
 //        {
-//            grabber.grabTote();
+//            toteLifter.dropTotes();
 //        }
-//        if(joystickZero.getRawButton(4))
+//        if(joystickZero.getRawButton(2))
 //        {
-//            grabber.grabCan();
+//            toteLifter.addTote();
 //        }
-//        if(joystickZero.getRawButton(5))
-//        {
-//            grabber.grabStepCan();
-//        }
-//        grabber.idle();
-//        chassis.setJoystickData(0, 0, 0);
-//        chassis.idle();
-//        System.out.print("Horizontal: " + grabber.m_horizontalPotDistance);
-//        System.out.print(" Vertical: " + grabber.m_verticalPotDistance);
-//        System.out.println(" Sonar: " + grabber.m_sonarDistance);
+        if(joystickZero.getRawButton(3))
+        {
+            grabber.grabTote();
+        }
+        if(joystickZero.getRawButton(4))
+        {
+            grabber.grabCan();
+        }
+        if(joystickZero.getRawButton(5))
+        {
+            grabber.grabStepCan();
+        }
+//        toteLifter.idle();
+        grabber.idle();
+        chassis.setJoystickData(0, 0, 0);
+        chassis.idle();
+//        System.out.print(toteLifter.m_addSubstate);
+//        System.out.print(" Left: " + toteLifter.m_leftHeight);
+//        System.out.println(" Right: " + toteLifter.m_rightHeight);
+        
+        System.out.print("horizontalState: " + grabber.m_canHorizontalState);
+        System.out.print(" verticalState: " + grabber.m_verticalState);
+        System.out.print(" Horizontal: " + grabber.m_horizontalPotDistance);
+        System.out.print(" Vertical: " + grabber.m_verticalPotDistance);
+        System.out.println(" Sonar: " + grabber.m_sonarDistance);
         
 //    	double x = joystickZero.getX();
 //		double y = joystickZero.getY();
@@ -295,8 +326,8 @@ public class Robot extends IterativeRobot
      */
     public void testPeriodic()
     {
-//        grabberVerticalTalon.set(-joystickZero.getY());
-//        grabberHorizontalTalon.set(joystickOne.getY());
+        grabberVerticalTalon.set(-joystickTwo.getY());
+        grabberHorizontalTalon.set(joystickTwo.getX());
         
         leftLifterTalon.set(-joystickZero.getY());
         rightLifterTalon.set(joystickOne.getY());        
@@ -310,5 +341,7 @@ public class Robot extends IterativeRobot
             leftLifterServo.setAngle(170);
             rightLifterServo.setAngle(10);
         }
+        toteLifter.mapPots();
+        System.out.println(toteLifter.m_rightHeight);
     }
 }

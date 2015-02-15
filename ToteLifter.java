@@ -11,20 +11,26 @@ import edu.wpi.first.wpilibj.Servo;
  */
 public class ToteLifter
 {
-    CANTalon liftTalonLeft, liftTalonRight;
+    CANTalon leftTalon, rightTalon;
     Servo leftLifterServo, rightLifterServo;
     AnalogInput leftPot, rightPot;
     PIController piControllerLeft;
     PIController piControllerRight;
 
+    final int m_leftOpenServoPosition = 0;
+    final int m_leftCloseServoPosition = 170;
+    final int m_rightOpenServoPosition = 180;
+    final int m_rightCloseServoPosition = 10;
+    
     double m_collectLiftPosition;
     double m_openDogsLiftPosition;
     double m_closeDogsLiftPosition;
     double m_waitLiftPosition;
-    double m_openServoPosition;
-    double m_closeServoPosition;
-    String m_stateIndex;
+    
     String m_stateMode;
+    String m_addSubstate;
+    String m_dropSubstate;
+    
     double m_threshold;
     boolean totesDropped;
     double m_homeHeight;
@@ -35,15 +41,17 @@ public class ToteLifter
     double m_leftPotYIntercept;
     double m_rightPotYIntercept;
     
+    long m_timeStamp;
+    
     ToteLifter(CANTalon leftLift, CANTalon rightLift, Servo leftServo, 
             Servo rightServo, AnalogInput potentiometerLeft, 
             AnalogInput potentiometerRight, double leftP, double leftI, 
             double rightP, double rightI, double accuracyThreshold, 
-            double openServoPosition, double closeServoPosition, 
-            double homeHeight)
+            double homeHeight, double waitLiftPosition, 
+            double openDogsLiftPosition, double closeDogsLiftPosition)
     {
-        liftTalonLeft = leftLift;
-        liftTalonRight = rightLift;
+        leftTalon = leftLift;
+        rightTalon = rightLift;
         leftLifterServo = leftServo;
         rightLifterServo = rightServo;
         leftPot = potentiometerLeft;
@@ -51,32 +59,48 @@ public class ToteLifter
         piControllerLeft = new PIController(leftP, leftI);
         piControllerRight = new PIController(rightP, rightI);
         m_threshold = accuracyThreshold;
-        m_openServoPosition = openServoPosition;
-        m_closeServoPosition = closeServoPosition;
         m_homeHeight = homeHeight;
+        m_collectLiftPosition = homeHeight - 0.0586;
+        m_waitLiftPosition = waitLiftPosition + 0.06;
+        m_openDogsLiftPosition = openDogsLiftPosition;
+        m_closeDogsLiftPosition = closeDogsLiftPosition + 0.025;
+        m_stateMode = "AddTote";
+        m_addSubstate = "GoToWaitLiftPosition";
+        m_dropSubstate = "WaitForCommand";
+        totesDropped = false;
     }
 
     /**
      * Initializes member variables for the tote lifter
      */
-    void init()
+    void reinit()
     {
-        m_stateIndex = "Nothing";
-        m_stateMode = "Nothing";
+        m_addSubstate = "GoToWaitLiftPosition";
+        m_dropSubstate = "WaitForCommand";
         totesDropped = false;
+    }
+    
+    void disable()
+    {
+        m_stateMode = "WaitForCommand";
+        m_addSubstate = "WaitForCommand";
+        m_dropSubstate = "WaitForCommand";
     }
     
     void zeroPots()
     {
-        m_leftPotYIntercept = m_homeHeight - (0.132 * leftPot.getVoltage());
-        m_rightPotYIntercept = m_homeHeight - (-0.132 * rightPot.getVoltage());
+        m_leftPotYIntercept = m_homeHeight - (0.132 * 
+                leftPot.getAverageVoltage());
+        m_rightPotYIntercept = m_homeHeight - (-0.132 * 
+                rightPot.getAverageVoltage());
     }
     
     void mapPots()
     {
-        m_leftHeight =  0.132 * leftPot.getVoltage() + m_leftPotYIntercept 
-                - 0.015;
-        m_rightHeight = -0.132 * rightPot.getVoltage() + m_rightPotYIntercept;
+        m_leftHeight =  0.132 * leftPot.getAverageVoltage() + 
+                m_leftPotYIntercept - 0.015;
+        m_rightHeight = -0.132 * rightPot.getAverageVoltage() + 
+                m_rightPotYIntercept;
     }
 
     /**
@@ -84,8 +108,8 @@ public class ToteLifter
      */
     void openDogs()
     {
-        leftLifterServo.set(m_openServoPosition);
-        rightLifterServo.set(m_openServoPosition);
+        leftLifterServo.setAngle(m_leftOpenServoPosition);
+        rightLifterServo.setAngle(m_rightOpenServoPosition);
     }
 
     /**
@@ -93,8 +117,8 @@ public class ToteLifter
      */
     void closeDogs()
     {
-        leftLifterServo.set(m_closeServoPosition);
-        rightLifterServo.set(m_closeServoPosition);
+        leftLifterServo.setAngle(m_leftCloseServoPosition);
+        rightLifterServo.setAngle(m_rightCloseServoPosition);
     }
     
     void inputPIConstants(double leftPConstant, double leftIConstant,
@@ -119,22 +143,22 @@ public class ToteLifter
         
         if(Math.abs(setpoint - m_leftHeight) > m_threshold)
         {
-            liftTalonLeft.set(-piControllerLeft.getMotorValue
+            leftTalon.set(-piControllerLeft.getMotorValue
                     (setpoint, m_leftHeight));
         }
         else
         {
-            liftTalonLeft.set(0);
+            leftTalon.set(0);
             leftDone = true;
         }
         if(Math.abs(setpoint - m_rightHeight) > m_threshold)
         {
-            liftTalonRight.set(piControllerRight.getMotorValue
+            rightTalon.set(piControllerRight.getMotorValue
                     (setpoint, m_rightHeight));
         }
         else
         {
-            liftTalonRight.set(0);
+            rightTalon.set(0);
             rightDone = true;
         }
         if(leftDone && rightDone)
@@ -149,7 +173,7 @@ public class ToteLifter
      */
     void dropTotes()
     {
-        m_stateIndex = "GoToOpenDogsPosition";
+        m_dropSubstate = "GoToOpenDogsPosition";
         m_stateMode = "DropTotes";
         piControllerLeft.reinit();
         piControllerRight.reinit();
@@ -158,9 +182,9 @@ public class ToteLifter
     /**
      * Sets the states to start the storing phases
      */
-    void storeTote()
+    void addTote()
     {
-        m_stateIndex = "GoToLiftPosition";
+        m_addSubstate = "GoToLiftPosition";
         m_stateMode = "AddTote";
         piControllerLeft.reinit();
         piControllerRight.reinit();
@@ -182,27 +206,28 @@ public class ToteLifter
      * must be called every loop for the tote lifter to operate
      */
     //TODO All states need comments
-    //TODO Add PIController "reinit()"s
     void idle()
     {
         totesDropped = false;
         switch(m_stateMode)
         {
-        	case "Nothing":
-        		break;
+        	case "WaitForCommand":
+        		leftTalon.set(0);
+        		rightTalon.set(0);
+        	    break;
         		
             case "AddTote":
-                switch(m_stateIndex)
+                switch(m_addSubstate)
                 {
-                    //TODO: Why is this state here?
-                	//This state is here to be more efficient 
-                    case "Nothing":
+                    case "WaitForCommand":
+                        leftTalon.set(0);
+                        rightTalon.set(0);
                         break;
 
                     case "GoToLiftPosition":
                         if(goToHeight(m_collectLiftPosition))
                         {
-                            m_stateIndex = "GoToOpenDogsPosition";
+                            m_addSubstate = "GoToOpenDogsPosition";
                             piControllerLeft.reinit();
                             piControllerRight.reinit();
                         }
@@ -211,7 +236,7 @@ public class ToteLifter
                     case "GoToOpenDogsPosition":
                         if(goToHeight(m_openDogsLiftPosition))
                         {
-                            m_stateIndex = "OpenDogs";
+                            m_addSubstate = "OpenDogs";
                             piControllerLeft.reinit();
                             piControllerRight.reinit();
                         }
@@ -219,28 +244,31 @@ public class ToteLifter
 
                     case "OpenDogs":
                         openDogs();
-                        m_stateIndex = "GoToCloseDogsPosition";
+                        m_addSubstate = "GoToCloseDogsPosition";
                         break;
 
                     case "GoToCloseDogsPosition":
                         if(goToHeight(m_closeDogsLiftPosition))
                         {
-                            m_stateIndex = "CloseDogs";
+                            m_addSubstate = "CloseDogs";
                             piControllerLeft.reinit();
                             piControllerRight.reinit();
+                            m_timeStamp = System.currentTimeMillis();
                         }
                         break;
 
                     case "CloseDogs":
                         closeDogs();
-                        m_stateIndex = "GoToWaitLiftPosition";
+                        if(System.currentTimeMillis() - m_timeStamp > 500)
+                        {
+                            m_addSubstate = "GoToWaitLiftPosition";
+                        }
                         break;
 
                     case "GoToWaitLiftPosition":
                         if(goToHeight(m_waitLiftPosition))
                         {
-                            m_stateIndex = "Nothing";
-
+                            m_addSubstate = "WaitForCommand";
                         }
                         break;
 
@@ -250,15 +278,17 @@ public class ToteLifter
                 break;
 
             case "DropTotes":
-                switch(m_stateIndex)
+                switch(m_dropSubstate)
                 {
-                    case "Nothing":
+                    case "WaitForCommand":
+                        leftTalon.set(0);
+                        rightTalon.set(0);
                         break;
 
                     case "GoToOpenDogsPosition":
                         if(goToHeight(m_openDogsLiftPosition))
                         {
-                            m_stateIndex = "OpenDogs";
+                            m_dropSubstate = "OpenDogs";
                             piControllerLeft.reinit();
                             piControllerRight.reinit();
                         }
@@ -266,13 +296,13 @@ public class ToteLifter
 
                     case "OpenDogs":
                         openDogs();
-                        m_stateIndex = "GoToLiftPosition";
+                        m_dropSubstate = "GoToLiftPosition";
                         break;
 
                     case "GoToLiftPosition":
                         if(goToHeight(m_collectLiftPosition))
                         {
-                            m_stateIndex = "Nothing";
+                            m_dropSubstate = "WaitForCommand";
                             totesDropped = true;
                         }
                         break;

@@ -82,7 +82,7 @@ public class Autonomous
                 // Grabber.collecting should return true when it
                 // finishes collecting
                 {
-                    toteLifter.storeTote();
+                    toteLifter.addTote();
                     // ToteLifter.storeTote tells the ToteLifter to start
                     // lifting the tote,
                     switch(m_collectCount)
