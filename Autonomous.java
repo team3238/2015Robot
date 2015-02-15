@@ -35,6 +35,18 @@ public class Autonomous
         m_timeDriveAway = timeDriveAway;
         m_moveBackSpeed = moveBackSpeed;
     }
+    
+    
+    void inputConstants(double infraredDistanceTrigger, 
+		long timeIgnore, int timeDriveBack, int timeDriveAway, 
+		double moveBackSpeed)
+	{
+    	m_infraredDistanceTrigger = infraredDistanceTrigger;
+        m_timeIgnore = timeIgnore;
+        m_timeDriveBack = timeDriveBack;
+        m_timeDriveAway = timeDriveAway;
+        m_moveBackSpeed = moveBackSpeed;
+	}
 
     /**
      * Re-initializes the autonomous period so that the variables are set up to

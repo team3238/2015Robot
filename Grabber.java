@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.CANTalon;
 /**
  * This is the class that controls the vertical and horizontal collector.
  *
- * @author Aaron Jenson and Nick Papadakis
+ * @author Aaron Jenson and Nick Papadakis and Anders Sjoboen
  */
 
 public class Grabber
@@ -113,6 +113,36 @@ public class Grabber
         m_verticalHome = verticalHome;
         m_slowDownRetractThreshold = slowDownRetractThreshold;
         m_retractedLocation = retractedLocation;
+    }
+    
+    void inputConstants(double verticalPConstant, double verticalIConstant,
+            double horizontalPConstant, double horizontalIConstant,
+            double gentleHorizontalP, double gentleHorizontalI,
+            double horizontalThreshold, double verticalThreshold,
+            double canExtendHeight, double canGrabHeight, 
+            double toteExtendHeight, double toteGrabHeight, 
+            double stepCanExtendHeight, double stepCanGrabHeight,
+            double retractedLocation, double pauseDistanceFromObject, 
+            double horizontalHome, double verticalHome, 
+            double slowDownRetractThreshold)
+    {
+    	m_gentleHorizontalP = gentleHorizontalP;
+        m_gentleHorizontalI = gentleHorizontalI;
+        m_canExtendHeight = canExtendHeight;
+        m_canGrabHeight = canGrabHeight;
+        m_toteExtendHeight = toteExtendHeight;
+        m_toteGrabHeight = toteGrabHeight;
+        m_stepCanExtendHeight = stepCanExtendHeight;
+        m_stepCanGrabHeight = stepCanGrabHeight;
+        m_pauseDistanceFromObject = pauseDistanceFromObject;
+        m_horizontalThreshold = horizontalThreshold;
+        m_verticalThreshold = verticalThreshold;
+        m_horizontalHome = horizontalHome;
+        m_verticalHome = verticalHome;
+        m_slowDownRetractThreshold = slowDownRetractThreshold;
+        m_retractedLocation = retractedLocation;
+        verticalPI.inputConstants(verticalPConstant, verticalIConstant);
+        horizontalPI.inputConstants(horizontalPConstant, horizontalIConstant);
     }
 
     /**
@@ -275,8 +305,9 @@ public class Grabber
                 if(m_verticalDone)
                 {
                     m_toteHorizontalState = "finishExtending";
-                    horizontalPI.inputConstants
-                        (m_gentleHorizontalP, m_gentleHorizontalI);
+                    //horizontalPI.inputConstants
+                      //  (m_gentleHorizontalP, m_gentleHorizontalI);
+                    horizontalPI.setThrottle(0.5);
                     horizontalPI.reinit();
                 }
                 horizontalTalon.set(0);
@@ -293,6 +324,7 @@ public class Grabber
                 {
                     m_toteHorizontalState = "waitForHook";
                     m_horizontalExtended = true;
+                    horizontalPI.setThrottle(0.7);
                 }
                 break;
              
@@ -300,7 +332,7 @@ public class Grabber
                 if(m_hooked)
                 {
                     m_toteHorizontalState = "retracting";
-                    horizontalPI.inputConstants(m_horizontalP, m_horizontalI);
+                    //horizontalPI.inputConstants(m_horizontalP, m_horizontalI);
                     horizontalPI.reinit();
                 }
                 else
@@ -322,7 +354,7 @@ public class Grabber
                 {
                     
                     horizontalTalon.set(
-                            1 * limitPIOutput(horizontalPI.getMotorValue(
+                            -0.5 * limitPIOutput(horizontalPI.getMotorValue(
                             m_retractedLocation, m_horizontalPotDistance)));
                 }
                 else
@@ -348,7 +380,6 @@ public class Grabber
             case "waitForVertical":
                 if(m_verticalDone)
                 {
-                    System.out.println("Setpoint: " + m_canHorizontalSetpoint);
                     m_canHorizontalState = "waitForSensing";
                     m_timestamp = System.currentTimeMillis();
                     horizontalPI.inputConstants
@@ -477,7 +508,7 @@ public class Grabber
                 break;
 
             case "prepareForCanGrab":
-                m_extendHeight = 0.5;
+                m_extendHeight = 0.6;
                 m_grabHeight = m_canGrabHeight;
                 m_verticalState = "goToReadHeight";
                 break;
@@ -505,16 +536,13 @@ public class Grabber
                     }
                     mapSensors();
                     verticalTalon.set(0);
-                    System.out.println("Waiting for a second..." + (System.currentTimeMillis() - m_timestamp)+"\n\n\n\n\n\n\n\n\n\n\n\n");
                     if(System.currentTimeMillis() - m_timestamp > 100)
                     {
                         m_canHorizontalSetpoint = m_sonarDistance;
-                        System.out.println("NEW SETPOInT = " +m_canHorizontalSetpoint);
                         m_extendHeight = m_canExtendHeight;
                         m_grabHeight = m_canGrabHeight;
                         m_verticalState = "goToExtendHeight";
                         m_foundReadPosition = false;
-                        //System.out.println("Waiting for a second..." + (System.currentTimeMillis() - m_timestamp)+"\n\n\n\n\n\n\n\n\n\n\n\n");
                     }
                 }
                 break;
