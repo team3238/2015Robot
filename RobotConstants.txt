@@ -101,11 +101,11 @@ grabberHorizontalHome
 grabberVerticalHome
 0.161
 
-homeHeight
-0.199
+lifterHomeHeight
+0.169
 
 lifterWaitLiftPosition
-0.45
+0.51
 
 lifterOpenDogsLiftPosition
 0.443
