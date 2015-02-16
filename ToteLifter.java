@@ -165,7 +165,7 @@ public class ToteLifter
         boolean positionReached = false;
         double adjust = 0.0;
         mapPots();
-        adjust = (m_leftHeight-m_rightHeight)*11;
+        adjust = (m_leftHeight-m_rightHeight)*10;
         
         if(Math.abs(setpoint - m_leftHeight) > m_threshold)
         {
@@ -296,7 +296,6 @@ public class ToteLifter
      * Controls the phases that the tote lifter goes through when it runs, this
      * must be called every loop for the tote lifter to operate
      */
-    //TODO All states need comments
     void idle()
     {
         totesDropped = false;
@@ -340,7 +339,7 @@ public class ToteLifter
                         break;
         	            
         	        case "GoToFullPosition":
-        	            System.out.println("Left Height: "+ m_leftHeight + "             Right Height: "+m_rightHeight);
+        	            //System.out.println("Left Height: "+ m_leftHeight + "             Right Height: "+m_rightHeight);
                         if(goToHeight(0.330))
                         {
                             m_dropFullState = "WaitForCommand";
@@ -435,7 +434,7 @@ public class ToteLifter
                         closeDogs();
                         leftTalon.set(0);
                         rightTalon.set(0);
-                        if(System.currentTimeMillis() - m_timeStamp > 1000)
+                        if(System.currentTimeMillis() - m_timeStamp > 500)
                         {
                             m_addSubstate = "GoToWaitLiftPosition";
                             m_timeStamp = System.currentTimeMillis();
