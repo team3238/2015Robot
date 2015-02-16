@@ -102,16 +102,19 @@ grabberVerticalHome
 0.161
 
 lifterHomeHeight
-0.169
+0.2
 
 lifterWaitLiftPosition
-0.51
+0.4
 
 lifterOpenDogsLiftPosition
-0.443
+0.5
 
 lifterCloseDogsLiftPosition
 0.629
 
 slowDownRetractThreshold
 0.5
+
+homeOffset
+-0.03

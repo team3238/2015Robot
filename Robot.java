@@ -79,6 +79,8 @@ public class Robot extends IterativeRobot
     double m_lifterCloseDogsLiftPosition;
         
     double m_slowDownRetractThreshold;
+    
+    double m_homeOffset;
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
@@ -134,8 +136,8 @@ public class Robot extends IterativeRobot
         grabberHorizontalTalon = new CANTalon(GRABBERHORIZONTALTALONID);
         grabberVerticalPot = new AnalogInput(GRABBERVERTICALPOTPORT);
         grabberHorizontalPot = new AnalogInput(GRABBERHORIZONTALPOTPORT);
-        grabberVerticalPot.setAverageBits(2);
-        grabberHorizontalPot.setAverageBits(2);
+        grabberVerticalPot.setAverageBits(3);
+        grabberHorizontalPot.setAverageBits(3);
         
         reflectSensorFront = new DigitalInput(REFLECTSENSORFRONTPORT);
         reflectSensorRear = new DigitalInput(REFLECTSENSORREARPORT);
@@ -175,7 +177,7 @@ public class Robot extends IterativeRobot
                 lifterRightPot, m_lifterLeftP, m_lifterLeftI, m_lifterRightP, 
                 m_lifterRightI, m_lifterAccuracyThreshold, m_lifterHomeHeight, 
                 m_lifterWaitLiftPosition, m_lifterOpenDogsLiftPosition, 
-                m_lifterCloseDogsLiftPosition);
+                m_lifterCloseDogsLiftPosition, m_homeOffset);
         
         autonomous = new Autonomous(chassis, m_infraredDistanceTrigger, 
         		m_timeIgnore, m_timeDriveBack, m_timeDriveAway, 
@@ -235,6 +237,7 @@ public class Robot extends IterativeRobot
         
         m_slowDownRetractThreshold = 
                 Double.parseDouble(fileContents.get(116));
+        m_homeOffset = Double.parseDouble(fileContents.get(119));
     }
 
     public void reinputConstants()
@@ -252,18 +255,21 @@ public class Robot extends IterativeRobot
         toteLifter.inputConstants(m_lifterLeftP, m_lifterLeftI,
                 m_lifterRightP, m_lifterRightI, m_lifterAccuracyThreshold, 
                 m_lifterHomeHeight, m_lifterWaitLiftPosition, 
-                m_lifterOpenDogsLiftPosition, m_lifterCloseDogsLiftPosition);
+                m_lifterOpenDogsLiftPosition, m_lifterCloseDogsLiftPosition, 
+                m_homeOffset);
         autonomous.inputConstants(m_infraredDistanceTrigger, m_timeIgnore, 
                 m_timeDriveBack, m_timeDriveAway, m_moveBackSpeed);
     }
 
     public void autonomousInit()
     {        
-        reinputConstants(); 
+        reinputConstants();
+        System.out.println(toteLifter.m_homeHeight);
         toteLifter.zeroPots();
         leftLifterServo.setAngle(0);
         rightLifterServo.setAngle(180);
         toteLifter.reinitPIControllers();
+        toteLifter.zeroPots();
     }
 
     /**
@@ -271,6 +277,9 @@ public class Robot extends IterativeRobot
      */
     public void autonomousPeriodic()
     {
+        toteLifter.mapPots();
+        System.out.print("Left: " + toteLifter.m_leftHeight);
+        System.out.println(" Right: " + toteLifter.m_rightHeight);
         chassis.setJoystickData(0, 0, 0);
         chassis.idle();
 
@@ -286,8 +295,7 @@ public class Robot extends IterativeRobot
     {
         reinputConstants();
         grabber.reset();
-        toteLifter.reinit();
-        toteLifter.zeroPots();
+        toteLifter.disable();
     }
 
     /**
@@ -295,6 +303,9 @@ public class Robot extends IterativeRobot
      */
     public void teleopPeriodic()
     {
+//        toteLifter.mapPots();
+//        System.out.print("Left: " + toteLifter.m_leftHeight);
+//        System.out.println(" Right: " + toteLifter.m_rightHeight);
 //        if(joystickZero.getRawButton(1))
 //        {
 //            toteLifter.dropTotes();
@@ -311,28 +322,33 @@ public class Robot extends IterativeRobot
 //        {
 //            toteLifter.dropAllTotes();
 //        }
-//        if(joystickZero.getRawButton(3))
-//        {
-//            grabber.grabTote();
-//        }
-//        if(joystickZero.getRawButton(4))
-//        {
-//            grabber.grabCan();
-//        }
-//        if(joystickZero.getRawButton(5))
-//        {
-//            grabber.grabStepCan();
-//        }
-//        if(joystickZero.getRawButton(11))
-//        {
-//            grabber.zeroPots();
-//        }
-//        if(joystickZero.getRawButton(12))
-//        {
-//            grabber.goHome();
-//        }
+        if(joystickZero.getRawButton(3))
+        {
+            grabber.grabTote();
+        }
+        if(joystickZero.getRawButton(4))
+        {
+            grabber.grabCan();
+        }
+        if(joystickZero.getRawButton(5))
+        {
+            grabber.grabStepCan();
+        }
+        if(joystickZero.getRawButton(10))
+        {
+            toteLifter.zeroPots();
+            toteLifter.reinit();
+        }
+        if(joystickZero.getRawButton(11))
+        {
+            grabber.zeroPots();
+        }
+        if(joystickZero.getRawButton(12))
+        {
+            grabber.goHome();
+        }
 //        toteLifter.idle();
-//        grabber.idle();
+        grabber.idle();
 //        chassis.setJoystickData(0, 0, 0);
 //        chassis.idle();
 
@@ -396,7 +412,5 @@ public class Robot extends IterativeRobot
             leftLifterServo.setAngle(170);
             rightLifterServo.setAngle(10);
         }
-        toteLifter.mapPots();
-        System.out.println(toteLifter.m_rightHeight);
     }
 }

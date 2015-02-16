@@ -49,7 +49,8 @@ public class ToteLifter
             AnalogInput potentiometerRight, double leftP, double leftI, 
             double rightP, double rightI, double accuracyThreshold, 
             double homeHeight, double waitLiftPosition, 
-            double openDogsLiftPosition, double closeDogsLiftPosition)
+            double openDogsLiftPosition, double closeDogsLiftPosition,
+            double homeOffset)
     {
         leftTalon = leftLift;
         rightTalon = rightLift;
@@ -61,7 +62,7 @@ public class ToteLifter
         piControllerRight = new PIController(rightP, rightI);
         m_threshold = accuracyThreshold;
         m_homeHeight = homeHeight;
-        m_collectLiftPosition = homeHeight;
+        m_collectLiftPosition = homeHeight + homeOffset;
         m_waitLiftPosition = waitLiftPosition;
         m_openDogsLiftPosition = openDogsLiftPosition;
         m_closeDogsLiftPosition = closeDogsLiftPosition;
@@ -75,22 +76,25 @@ public class ToteLifter
     void inputConstants(double leftP, double leftI, 
         double rightP, double rightI, double accuracyThreshold, 
         double homeHeight, double waitLiftPosition, 
-        double openDogsLiftPosition, double closeDogsLiftPosition)
+        double openDogsLiftPosition, double closeDogsLiftPosition, 
+        double homeOffset)
     {
     	piControllerLeft.inputConstants(leftP, leftI);
     	piControllerRight.inputConstants(rightP, rightI);
     	m_threshold = accuracyThreshold;
         m_homeHeight = homeHeight;
-        m_collectLiftPosition = homeHeight;
+        m_collectLiftPosition = homeHeight + homeOffset;
         m_waitLiftPosition = waitLiftPosition;
         m_openDogsLiftPosition = openDogsLiftPosition;
         m_closeDogsLiftPosition = closeDogsLiftPosition;
     }
+    
     /**
      * Initializes member variables for the tote lifter
      */
     void reinit()
     {
+        m_stateMode = "AddTote";
         m_addSubstate = "GoToWaitLiftPosition";
         m_dropSubstate = "WaitForCommand";
         m_dropFullState = "WaitForCommand";
@@ -115,7 +119,7 @@ public class ToteLifter
     void mapPots()
     {
         m_leftHeight =  0.132 * leftPot.getAverageVoltage() + 
-                m_leftPotYIntercept - 0.015;
+                m_leftPotYIntercept;
         m_rightHeight = -0.132 * rightPot.getAverageVoltage() + 
                 m_rightPotYIntercept;
     }
