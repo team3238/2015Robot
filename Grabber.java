@@ -431,8 +431,9 @@ public class Grabber
                 {
                     m_canHorizontalState = "finishExtending";
                     horizontalPI.reinit();
-                    horizontalPI.inputConstants
-                            (m_gentleHorizontalP, m_gentleHorizontalI);
+                    horizontalPI.setThrottle(0.7);
+//                    horizontalPI.inputConstants
+//                            (m_gentleHorizontalP, m_gentleHorizontalI);
                 }
                 break;
                 
