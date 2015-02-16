@@ -12,7 +12,7 @@ import edu.wpi.first.wpilibj.CANTalon;
 public class Grabber
 {
     CANTalon verticalTalon, horizontalTalon;
-    AnalogInput verticalPot, horizontalPot, sonar;
+    AnalogInput verticalPot, horizontalPot, sonar, irSensor;
     PIController verticalPI, horizontalPI;
     UltraFilter ultrasonicFilter;
 
@@ -85,7 +85,7 @@ public class Grabber
             double stepCanExtendHeight, double stepCanGrabHeight,
             double retractedLocation, double pauseDistanceFromObject, 
             double horizontalHome, double verticalHome, 
-            double slowDownRetractThreshold)
+            double slowDownRetractThreshold, AnalogInput infraredSensor)
     {
         verticalTalon = verticalCANTalon;
         horizontalTalon = horizontalCANTalon;
@@ -119,6 +119,7 @@ public class Grabber
         m_verticalHome = verticalHome;
         m_slowDownRetractThreshold = slowDownRetractThreshold;
         m_retractedLocation = retractedLocation;
+        irSensor = infraredSensor;
     }
     
     void inputConstants(double verticalPConstant, double verticalIConstant,
@@ -197,7 +198,7 @@ public class Grabber
     {
         reset();
         m_verticalState = "prepareForToteGrab";
-        m_toteHorizontalState = "extending";
+        m_toteHorizontalState = "goHome";
     }
     
     void reset()
@@ -208,6 +209,7 @@ public class Grabber
         m_verticalDone = false;
         m_horizontalExtended = false;
         m_foundReadPosition = false;
+        m_hooked = false;
         horizontalPI.reinit();
         verticalPI.reinit();
     }
@@ -289,6 +291,11 @@ public class Grabber
                 horizontalPI.reinit();
                 break;
                 
+            case "stopMovingHorizontal":
+                horizontalTalon.set(0);
+                m_toteHorizontalState = "waitForCommand";
+                break;
+                
             case "goHome":
                 if(horizontalTalon.getOutputCurrent() < 17)
                 {
@@ -300,6 +307,39 @@ public class Grabber
                     m_horizontalFoundHome = true;
                     horizontalTalon.set(0);
                     verticalPI.reinit();
+                }
+                break;
+                
+            case "extendToToteSlowdown":
+                m_doneCollecting = false;
+                m_horizontalExtended = false;
+                if(Math.abs(m_toteHorizontalSetpoint - m_pauseDistanceFromObject 
+                        - m_horizontalPotDistance) > m_horizontalThreshold)
+                {
+                    horizontalPI.setThrottle(0.75);
+                    horizontalTalon.set(-horizontalPI.getMotorValue(
+                            m_toteHorizontalSetpoint, m_horizontalPotDistance));
+                }
+                else
+                {
+                    m_toteHorizontalState = "finishExtendingTote";
+                    horizontalPI.reinit();
+                }
+                break;
+                
+            case "finishExtendingTote":
+                if(Math.abs(m_toteHorizontalSetpoint - m_horizontalPotDistance) 
+                        > m_horizontalThreshold)
+                {
+                    horizontalPI.setThrottle(0.5);
+                    horizontalTalon.set(-horizontalPI.getMotorValue(
+                            m_toteHorizontalSetpoint, m_horizontalPotDistance));
+                }
+                else
+                {
+                    m_toteHorizontalState = "waitForHook";
+                    m_horizontalExtended = true;
+                    horizontalPI.setThrottle(1.0);
                 }
                 break;
 
@@ -508,7 +548,7 @@ public class Grabber
                     if(verticalTalon.getOutputCurrent() < 6)
                     {
                         verticalTalon.set(1);
-                        System.out.println(verticalTalon.getOutputCurrent());
+                        //System.out.println(verticalTalon.getOutputCurrent());
                     }
                     else
                     {
@@ -525,11 +565,36 @@ public class Grabber
                 }
                     
                 break;
+                
+            case "goHomeToteGrab":
+                if(m_horizontalFoundHome)
+                {
+                    if(verticalTalon.getOutputCurrent() < 6)
+                    {
+                        verticalTalon.set(1);
+                        //System.out.println(verticalTalon.getOutputCurrent());
+                    }
+                    else
+                    {
+                        m_verticalState = "waitForHorizontal";
+                        m_toteHorizontalState = "extendToToteSlowdown";
+                        m_horizontalFoundHome = false;
+                        verticalTalon.set(0);
+                        zeroPots();
+                        //reset();
+                    }
+                }
+                else
+                {
+                    verticalTalon.set(0);
+                }
+                    
+                break;
 
             case "prepareForToteGrab":
                 m_extendHeight = m_toteExtendHeight;
                 m_grabHeight = m_toteGrabHeight;
-                m_verticalState = "goToExtendHeight";
+                m_verticalState = "goHomeToteGrab";
                 break;
 
             case "prepareForCanGrab":

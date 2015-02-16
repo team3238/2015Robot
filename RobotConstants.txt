@@ -20,7 +20,7 @@ speed that you drive backward at after you have the totes
 
 LineTrack
 spin threshold for the gyro assist during line tracking
-3
+0.5
 
 
 ToteLifter
@@ -69,7 +69,7 @@ toteExtendHeight
 0.165
 
 toteGrabHeight
-0.232
+0.2
 
 stepCanExtendHeight
 0.55
@@ -120,7 +120,7 @@ homeOffset
 -0.03
 
 gyroPConstant
-2.5
+2
 
 gyroIConstant
-0.001
+0

@@ -67,7 +67,7 @@ public class GyroDrive
          * induced spin or if the driver is trying to rotate, and if so, don't
          * change the current rotation value
          */
-        if((error > spinThreshold) || rotation <= -0.25 || rotation >= 0.25)
+        if((error > spinThreshold) || rotation <= -0.00001 || rotation >= 0.000001)
         {
             adjustedRotationValue = rotation;
         }

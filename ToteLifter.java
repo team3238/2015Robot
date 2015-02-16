@@ -122,9 +122,9 @@ public class ToteLifter
     void mapPots()
     {
         m_leftHeight =  0.132 * leftPot.getAverageVoltage() + 
-                m_leftPotYIntercept;
+                m_leftPotYIntercept - 0.005;
         m_rightHeight = -0.132 * rightPot.getAverageVoltage() + 
-                m_rightPotYIntercept + 0.01;
+                m_rightPotYIntercept;
     }
 
     /**
@@ -340,7 +340,7 @@ public class ToteLifter
         	            
         	        case "GoToFullPosition":
         	            //System.out.println("Left Height: "+ m_leftHeight + "             Right Height: "+m_rightHeight);
-                        if(goToHeight(0.330))
+                        if(goToHeight(0.30))
                         {
                             m_dropFullState = "WaitForCommand";
                             piControllerLeft.reinit();
@@ -438,13 +438,13 @@ public class ToteLifter
                         {
                             m_addSubstate = "GoToWaitLiftPosition";
                             m_timeStamp = System.currentTimeMillis();
-                            piControllerLeft.setThrottle(0.1);
-                            piControllerRight.setThrottle(0.1);
+                            piControllerLeft.setThrottle(0.25);
+                            piControllerRight.setThrottle(0.25);
                         }
                         break;
 
                     case "GoToWaitLiftPosition":
-                        if(System.currentTimeMillis()- m_timeStamp > 100)
+                        if(System.currentTimeMillis()- m_timeStamp > 1000)
                         {
                             piControllerLeft.setThrottle(1.0);
                             piControllerRight.setThrottle(1.0);
@@ -482,7 +482,15 @@ public class ToteLifter
                         openDogs();
                         if(System.currentTimeMillis() - m_timeStamp > 500)
                         {
+                            m_dropSubstate = "GoToAlmostHome";
+                        }
+                        break;
+                        
+                    case "GoToAlmostHome":
+                        if(goToHeight(0.25))
+                        {
                             m_dropSubstate = "GoToLiftPosition";
+                            totesDropped = true;
                         }
                         break;
 
