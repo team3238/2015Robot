@@ -84,6 +84,8 @@ public class Robot extends IterativeRobot
     
     double m_gyroPConstant;
     double m_gyroIConstant;
+
+    int m_topHatValue;
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
@@ -320,6 +322,8 @@ public class Robot extends IterativeRobot
 //        toteLifter.mapPots();
 //        System.out.print("Left: " + toteLifter.m_leftHeight);
 //        System.out.println(" Right: " + toteLifter.m_rightHeight);
+    	  m_topHatValue = joystickZero.getPOV();
+    	
           if(joystickZero.getRawButton(1))
           {
               toteLifter.dropTotes();
@@ -327,6 +331,15 @@ public class Robot extends IterativeRobot
           if(joystickZero.getRawButton(2))
           {
               toteLifter.addTote();
+          }
+          
+          if(joystickZero.getRawButton(7))
+          {
+              toteLifter.closeDogs();
+          }
+          if(joystickZero.getRawButton(8))
+          {
+              toteLifter.openDogs();
           }
 //        if(joystickZero.getRawButton(3))
 //        {
@@ -361,12 +374,25 @@ public class Robot extends IterativeRobot
             grabber.goHome();
         }
         ///System.out.println(toteLifter.leftTalon.getOutputCurrent());
+        //System.out.println(toteLifter.leftTalon.getOutputCurrent());
         //System.out.println(grabber.horizontalTalon.getOutputCurrent());
         toteLifter.idle();
         //System.out.println("Tote = "+ grabber.m_toteHorizontalState );
         //System.out.println("                                     Can = "+grabber.m_canHorizontalState);
         //System.out.println("                                                                         Vertical = "+grabber.m_verticalState);
-        grabber.idle();
+        if(m_topHatValue == -1)
+        {
+        	grabber.idle();
+        }
+        else
+        {
+        	grabber.reset();
+        	//grabber.horizontalTalon.set(0);
+        	//grabber.verticalTalon.set(0);
+        	System.out.println(m_topHatValue);
+        	grabber.verticalTalon.set(0.5*Math.sin(m_topHatValue*(Math.PI/180.0)));
+        	grabber.horizontalTalon.set(0.5*Math.cos(m_topHatValue*(Math.PI/180.0)));
+        }
 //        System.out.print("m_pauseDistanceFromObject: " + grabber.m_pauseDistanceFromObject);
 //        System.out.print(" m_horizontalPotDistance: " + grabber.m_horizontalPotDistance);
 //        System.out.println(" m_horizontalThreshold: " + grabber.m_horizontalThreshold);

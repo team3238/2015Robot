@@ -250,9 +250,9 @@ public class Grabber
     
     void goHome()
     {
+    	m_horizontalFoundHome = false;
         m_toteHorizontalState = "goHome";
         m_verticalState = "goHome";
-        m_horizontalFoundHome = false;
         horizontalPI.reinit();
     }
     
@@ -518,6 +518,10 @@ public class Grabber
                         zeroPots();
                         reset();
                     }
+                }
+                else
+                {
+                	verticalTalon.set(0);
                 }
                     
                 break;
