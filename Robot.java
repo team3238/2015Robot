@@ -81,6 +81,9 @@ public class Robot extends IterativeRobot
     double m_slowDownRetractThreshold;
     
     double m_homeOffset;
+    
+    double m_gyroPConstant;
+    double m_gyroIConstant;
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
@@ -143,6 +146,7 @@ public class Robot extends IterativeRobot
         reflectSensorFront = new DigitalInput(REFLECTSENSORFRONTPORT);
         reflectSensorRear = new DigitalInput(REFLECTSENSORREARPORT);
         gyroSensor = new AnalogInput(GYROSENSORPORT);
+        gyroSensor.setAverageBits(2);
         infraredSensor = new AnalogInput(IRSENSORPORT);
         sonarSensor = new AnalogInput(SONARSENSORPORT);
         accelerometer = new BuiltInAccelerometer();
@@ -239,6 +243,9 @@ public class Robot extends IterativeRobot
         m_slowDownRetractThreshold = 
                 Double.parseDouble(fileContents.get(116));
         m_homeOffset = Double.parseDouble(fileContents.get(119));
+        
+        m_gyroPConstant = Double.parseDouble(fileContents.get(122));
+        m_gyroIConstant = Double.parseDouble(fileContents.get(125));
     }
 
     public void reinputConstants()
@@ -273,8 +280,6 @@ public class Robot extends IterativeRobot
         //toteLifter.zeroPots();
         grabber.zeroPots();
         grabber.grabStepCan();
-        
-        
     }
 
     /**
@@ -355,7 +360,7 @@ public class Robot extends IterativeRobot
         {
             grabber.goHome();
         }
-        System.out.println(toteLifter.leftTalon.getOutputCurrent());
+        ///System.out.println(toteLifter.leftTalon.getOutputCurrent());
         //System.out.println(grabber.horizontalTalon.getOutputCurrent());
         toteLifter.idle();
         //System.out.println("Tote = "+ grabber.m_toteHorizontalState );
@@ -386,24 +391,20 @@ public class Robot extends IterativeRobot
 		double y = joystickZero.getY();
 		double twist = joystickZero.getTwist();
 		
-		if(twist < 0)
+        if(twist > -0.25 && twist < 0.25)
         {
-            if(twist > -0.25)
-            {
-                twist = 0;
-            }
-            else
-            {
-                twist += 0.25;
-                twist = twist*(1/.75);
-            }
+            twist = 0;
         }
-		
+            
         /* Maps the value of the joystick using the current position of the
            throttle slider for safety and ease of driver control. */
 		double throttleMapping = Math.abs((joystickZero.getThrottle() - 1));
-		chassis.setJoystickData(y * throttleMapping, x * throttleMapping, 
-		        twist * throttleMapping);
+		double adjustedRotation = GyroDrive.getAdjustedRotationValue(
+		        x * throttleMapping, y * throttleMapping,
+		        twist * throttleMapping, m_gyroPConstant, m_gyroIConstant, 
+		        m_spinThreshold, gyroSensor.getAverageVoltage() - 2.37);
+		chassis.setJoystickData(x * throttleMapping, y * throttleMapping, 
+		        adjustedRotation);
 		chassis.idle();
     }
     

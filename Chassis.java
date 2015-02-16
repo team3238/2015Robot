@@ -58,8 +58,8 @@ public class Chassis
      */
     void setJoystickData(double x, double y, double twist)
     {
-        m_xValue = y;
-        m_yValue = x;
+        m_xValue = x;
+        m_yValue = y;
         m_twistValue = twist;
     }
 
