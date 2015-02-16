@@ -40,6 +40,8 @@ public class Grabber
     double m_stepCanExtendHeight;
     double m_stepCanGrabHeight;
     double m_readCanHeight;
+    double m_readCanStepHeight;
+    double m_readHeight;
     
     double m_toteHorizontalSetpoint = 0;
     double m_canHorizontalSetpoint = 0;
@@ -150,6 +152,7 @@ public class Grabber
         m_horizontalP = horizontalPConstant;
         m_horizontalI = horizontalIConstant;
         m_readCanHeight = 0.6;
+        m_readCanStepHeight = 0.7;
     }
 
     /**
@@ -530,6 +533,7 @@ public class Grabber
                 m_grabHeight = m_canGrabHeight;
                 m_verticalState = "goToReadHeight";
                 m_verticalDone = false;
+                m_readHeight = m_readCanHeight;
                 break;
 
             case "prepareForStepCanGrab":
@@ -538,15 +542,16 @@ public class Grabber
                 m_grabHeight = m_stepCanGrabHeight;
                 System.out.println("Grab Height = "+m_grabHeight);
                 m_verticalState = "goToReadHeight";
+                m_readHeight = m_readCanStepHeight;
                 break;
                 
             case "goToReadHeight":
                 //m_extendHeight = 0.6;//read height is 0.6
-                if(Math.abs(m_readCanHeight - m_verticalPotDistance) 
+                if(Math.abs(m_readHeight - m_verticalPotDistance) 
                         > m_verticalThreshold && !m_foundReadPosition)
                 {
                     verticalTalon.set(-verticalPI.getMotorValue(
-                            m_readCanHeight, m_verticalPotDistance));
+                            m_readHeight, m_verticalPotDistance));
                 }
                 else
                 {
