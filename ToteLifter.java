@@ -309,7 +309,7 @@ public class ToteLifter
         	case "GoHome":
         	    if(goToHome())
         	    {
-        	        m_stateMode = "waitForCommand";
+        	        m_stateMode = "WaitHome";
         	        piControllerLeft.reinit();
                     piControllerRight.reinit();
         	    }
