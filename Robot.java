@@ -386,8 +386,8 @@ public class Robot extends IterativeRobot
         	//grabber.horizontalTalon.set(0);
         	//grabber.verticalTalon.set(0);
         	System.out.println(m_topHatValue);
-        	grabber.verticalTalon.set(0.5*Math.sin(m_topHatValue*(Math.PI/180.0)));
-        	grabber.horizontalTalon.set(0.5*Math.cos(m_topHatValue*(Math.PI/180.0)));
+        	grabber.verticalTalon.set(1*Math.sin((m_topHatValue+180)*(Math.PI/180.0)));
+        	grabber.horizontalTalon.set(1*Math.cos((m_topHatValue+180)*(Math.PI/180.0)));
         }
 //        System.out.print("m_pauseDistanceFromObject: " + grabber.m_pauseDistanceFromObject);
 //        System.out.print(" m_horizontalPotDistance: " + grabber.m_horizontalPotDistance);
