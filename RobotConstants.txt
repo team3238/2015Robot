@@ -20,7 +20,7 @@ speed that you drive backward at after you have the totes
 
 LineTrack
 spin threshold for the gyro assist during line tracking
-1.0
+3
 
 
 ToteLifter
@@ -118,3 +118,9 @@ slowDownRetractThreshold
 
 homeOffset
 -0.03
+
+gyroPConstant
+2.5
+
+gyroIConstant
+0.001

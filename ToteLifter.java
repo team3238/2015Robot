@@ -318,7 +318,7 @@ public class ToteLifter
         	case "WaitHome":
         	    if(goToHeight(m_waitLiftPosition))
                 {
-                    m_addSubstate = "WaitForCommand";
+                    m_stateMode = "WaitForCommand";
                 }
         	    break;
         	    

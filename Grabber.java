@@ -325,7 +325,6 @@ public class Grabber
                     m_toteHorizontalState = "finishExtending";
                     //horizontalPI.inputConstants
                       //  (m_gentleHorizontalP, m_gentleHorizontalI);
-                    horizontalPI.setThrottle(0.7);
                     horizontalPI.reinit();
                 }
                 horizontalTalon.set(0);
@@ -335,7 +334,7 @@ public class Grabber
                 if(Math.abs(m_toteHorizontalSetpoint - m_horizontalPotDistance) 
                         > m_horizontalThreshold)
                 {
-                    horizontalPI.setThrottle(0.5);
+                    horizontalPI.setThrottle(1);
                     horizontalTalon.set(-horizontalPI.getMotorValue(
                             m_toteHorizontalSetpoint, m_horizontalPotDistance));
                 }
@@ -434,8 +433,9 @@ public class Grabber
                 {
                     m_canHorizontalState = "finishExtending";
                     horizontalPI.reinit();
-                    horizontalPI.inputConstants
-                            (m_gentleHorizontalP, m_gentleHorizontalI);
+                    horizontalPI.setThrottle(0.7);
+//                    horizontalPI.inputConstants
+//                            (m_gentleHorizontalP, m_gentleHorizontalI);
                 }
                 break;
                 
