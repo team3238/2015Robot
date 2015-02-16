@@ -43,7 +43,7 @@ public class UltraFilter
 		
 		if(zeroCount == 0)
 		{
-			return sortedArray[sortedArray.length/2];
+			return sortedArray[2];
 		}
 		else
 		{

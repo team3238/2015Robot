@@ -25,19 +25,19 @@ spin threshold for the gyro assist during line tracking
 
 ToteLifter
 pConstantLeft
-20
+17
 
 iConstantLeft
-0.5
+0.0025
 
 pConstantRight
-20
+17
 
 iConstantRight
-.5
+0.0025
 
 accuracy threshold for lifter 
-0.02
+0.005
 
 servo close position
 30
@@ -54,10 +54,10 @@ vertical i constant
 0
 
 horizontal p constant
-5
+9999
 
 horizontal i constant
-0.001
+0.1
 
 canExtendHeight
 0.391
@@ -72,16 +72,16 @@ toteGrabHeight
 0.232
 
 stepCanExtendHeight
-0.576
+0.55
 
 stepCanGrabHeight
-0.851
+0.917
 
 retractedLocation
 0.120
 
 horizontalThreshold
-0.03
+0.04
 
 verticalThreshold
 0.01
@@ -108,10 +108,10 @@ lifterWaitLiftPosition
 0.4
 
 lifterOpenDogsLiftPosition
-0.5
+0.4
 
 lifterCloseDogsLiftPosition
-0.629
+0.63
 
 slowDownRetractThreshold
 0.5

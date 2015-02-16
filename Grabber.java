@@ -39,6 +39,7 @@ public class Grabber
     double m_canGrabHeight;
     double m_stepCanExtendHeight;
     double m_stepCanGrabHeight;
+    double m_readCanHeight;
     
     double m_toteHorizontalSetpoint = 0;
     double m_canHorizontalSetpoint = 0;
@@ -146,6 +147,9 @@ public class Grabber
         m_retractedLocation = retractedLocation;
         verticalPI.inputConstants(verticalPConstant, verticalIConstant);
         horizontalPI.inputConstants(horizontalPConstant, horizontalIConstant);
+        m_horizontalP = horizontalPConstant;
+        m_horizontalI = horizontalIConstant;
+        m_readCanHeight = 0.6;
     }
 
     /**
@@ -172,18 +176,23 @@ public class Grabber
 
     void grabCan()
     {
+        reset();
         m_verticalState = "prepareForCanGrab";
         m_canHorizontalState = "waitForVertical";
+        m_readCanHeight = 0.6;
     }
 
     void grabStepCan()
     {
+        reset();
         m_verticalState = "prepareForStepCanGrab";
-        m_canHorizontalState = "extending";
+        m_canHorizontalState = "waitForVertical";
+        m_readCanHeight = 0.55;
     }
 
     void grabTote()
     {
+        reset();
         m_verticalState = "prepareForToteGrab";
         m_toteHorizontalState = "extending";
     }
@@ -195,6 +204,9 @@ public class Grabber
         m_canHorizontalState = "waitForCommand";
         m_verticalDone = false;
         m_horizontalExtended = false;
+        m_foundReadPosition = false;
+        horizontalPI.reinit();
+        verticalPI.reinit();
     }
     
     void goToHeight(double height)
@@ -238,6 +250,7 @@ public class Grabber
         m_toteHorizontalState = "goHome";
         m_verticalState = "goHome";
         m_horizontalFoundHome = false;
+        horizontalPI.reinit();
     }
     
     double limitPIOutput(double motorPower)
@@ -274,17 +287,16 @@ public class Grabber
                 break;
                 
             case "goHome":
-                if(Math.abs(m_horizontalHome - m_horizontalPotDistance + 0.02) 
-                        > m_horizontalThreshold)
+                if(horizontalTalon.getOutputCurrent() < 17)
                 {
-                    horizontalTalon.set(-horizontalPI.getMotorValue(
-                            m_horizontalHome, m_horizontalPotDistance));
+                    horizontalTalon.set(0.65);
                 }
                 else
                 {
                     m_toteHorizontalState = "waitForCommand";
                     m_horizontalFoundHome = true;
                     horizontalTalon.set(0);
+                    verticalPI.reinit();
                 }
                 break;
 
@@ -310,7 +322,7 @@ public class Grabber
                     m_toteHorizontalState = "finishExtending";
                     //horizontalPI.inputConstants
                       //  (m_gentleHorizontalP, m_gentleHorizontalI);
-                    horizontalPI.setThrottle(0.5);
+                    horizontalPI.setThrottle(0.7);
                     horizontalPI.reinit();
                 }
                 horizontalTalon.set(0);
@@ -320,6 +332,7 @@ public class Grabber
                 if(Math.abs(m_toteHorizontalSetpoint - m_horizontalPotDistance) 
                         > m_horizontalThreshold)
                 {
+                    horizontalPI.setThrottle(0.5);
                     horizontalTalon.set(-horizontalPI.getMotorValue(
                             m_toteHorizontalSetpoint, m_horizontalPotDistance));
                 }
@@ -327,7 +340,7 @@ public class Grabber
                 {
                     m_toteHorizontalState = "waitForHook";
                     m_horizontalExtended = true;
-                    horizontalPI.setThrottle(0.7);
+                    horizontalPI.setThrottle(1.0);
                 }
                 break;
              
@@ -401,14 +414,16 @@ public class Grabber
                 break;
                 
             case "extending":
+                horizontalPI.setThrottle(1.0);
                 m_doneCollecting = false;
                 m_horizontalExtended = false;
-                System.out.println(Math.abs(m_canHorizontalSetpoint 
-                        - m_pauseDistanceFromObject 
-                        - m_horizontalPotDistance));
+//                System.out.println(Math.abs(m_canHorizontalSetpoint 
+//                        - m_pauseDistanceFromObject 
+//                        - m_horizontalPotDistance));
                 if(Math.abs(m_canHorizontalSetpoint - m_pauseDistanceFromObject 
                         - m_horizontalPotDistance) > m_horizontalThreshold)
                 {
+                    horizontalPI.inputConstants(9999, 1);
                     horizontalTalon.set(-horizontalPI.getMotorValue(
                             m_canHorizontalSetpoint, m_horizontalPotDistance));
                 }
@@ -453,16 +468,15 @@ public class Grabber
                         > m_horizontalThreshold) && m_horizontalPotDistance
                         > m_slowDownRetractThreshold)
                 {
+                    horizontalPI.setThrottle(1.0);
                     horizontalTalon.set(-horizontalPI.getMotorValue(
                             m_retractedLocation, m_horizontalPotDistance));
                 }
-                else if(Math.abs(m_retractedLocation - m_horizontalPotDistance) 
-                        > m_horizontalThreshold)
+                else if(horizontalTalon.getOutputCurrent() < 18)
                 {
-                    
-                    horizontalTalon.set(
-                            -0.5 * limitPIOutput(horizontalPI.getMotorValue(
-                            m_retractedLocation, m_horizontalPotDistance)));
+                    horizontalPI.setThrottle(0.8);
+                    horizontalTalon.set(-horizontalPI.getMotorValue(
+                            m_retractedLocation, m_horizontalPotDistance));
                 }
                 else
                 {
@@ -488,17 +502,18 @@ public class Grabber
             case "goHome":
                 if(m_horizontalFoundHome)
                 {
-                    if(Math.abs(m_verticalHome - m_verticalPotDistance) 
-                            > m_verticalThreshold)
+                    if(verticalTalon.getOutputCurrent() < 6)
                     {
-                        verticalTalon.set(-verticalPI.getMotorValue(
-                                m_verticalHome, m_verticalPotDistance));
+                        verticalTalon.set(1);
+                        System.out.println(verticalTalon.getOutputCurrent());
                     }
                     else
                     {
                         m_verticalState = "waitForCommand";
                         m_horizontalFoundHome = false;
                         verticalTalon.set(0);
+                        zeroPots();
+                        reset();
                     }
                 }
                     
@@ -511,24 +526,27 @@ public class Grabber
                 break;
 
             case "prepareForCanGrab":
-                m_extendHeight = 0.6;
+                m_extendHeight = m_canExtendHeight;
                 m_grabHeight = m_canGrabHeight;
                 m_verticalState = "goToReadHeight";
+                m_verticalDone = false;
                 break;
 
             case "prepareForStepCanGrab":
                 m_extendHeight = m_stepCanExtendHeight;
+                System.out.println("Extend Height = "+m_extendHeight);
                 m_grabHeight = m_stepCanGrabHeight;
-                m_verticalState = "goToExtendHeight";
+                System.out.println("Grab Height = "+m_grabHeight);
+                m_verticalState = "goToReadHeight";
                 break;
                 
             case "goToReadHeight":
-                m_extendHeight = 0.6;
-                if(Math.abs(m_extendHeight - m_verticalPotDistance) 
+                //m_extendHeight = 0.6;//read height is 0.6
+                if(Math.abs(m_readCanHeight - m_verticalPotDistance) 
                         > m_verticalThreshold && !m_foundReadPosition)
                 {
                     verticalTalon.set(-verticalPI.getMotorValue(
-                            m_extendHeight, m_verticalPotDistance));
+                            m_readCanHeight, m_verticalPotDistance));
                 }
                 else
                 {
@@ -542,8 +560,8 @@ public class Grabber
                     if(System.currentTimeMillis() - m_timestamp > 100)
                     {
                         m_canHorizontalSetpoint = m_sonarDistance;
-                        m_extendHeight = m_canExtendHeight;
-                        m_grabHeight = m_canGrabHeight;
+                        //m_extendHeight = m_canExtendHeight;
+                        //m_grabHeight = m_canGrabHeight;
                         m_verticalState = "goToExtendHeight";
                         m_foundReadPosition = false;
                     }
