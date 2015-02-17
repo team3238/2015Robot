@@ -483,9 +483,10 @@ public class Robot extends IterativeRobot
      */
     public void testPeriodic()
     {
-        grabberVerticalTalon.set(-joystickTwo.getY());
-        grabberHorizontalTalon.set(joystickTwo.getX());
-        System.out.println("leftCurrent : "+leftLifterTalon.getOutputCurrent() +"rightCurrent : "+rightLifterTalon.getOutputCurrent());
+        System.out.println(infraredSensor.getAverageVoltage());
+        //grabberVerticalTalon.set(-joystickTwo.getY());
+        //grabberHorizontalTalon.set(joystickTwo.getX());
+        //System.out.println("leftCurrent : "+leftLifterTalon.getOutputCurrent() +"rightCurrent : "+rightLifterTalon.getOutputCurrent());
         double twist = joystickZero.getTwist();
         if(twist < 0)
         {
@@ -500,8 +501,8 @@ public class Robot extends IterativeRobot
             }
         }
         //System.out.println(twist);
-        leftLifterTalon.set(-joystickZero.getY());
-        rightLifterTalon.set(joystickOne.getY());        
+        //leftLifterTalon.set(-joystickZero.getY());
+        //rightLifterTalon.set(joystickOne.getY());        
         if(joystickZero.getRawButton(1))
         {
             leftLifterServo.setAngle(0);
