@@ -13,7 +13,7 @@ public class ToteLifter
 {
     CANTalon leftTalon, rightTalon;
     Servo leftLifterServo, rightLifterServo;
-    AnalogInput leftPot, rightPot;
+    AnalogInput leftPot, rightPot, irSensor;
     PIController piControllerLeft;
     PIController piControllerRight;
 
@@ -53,7 +53,7 @@ public class ToteLifter
             double rightP, double rightI, double accuracyThreshold, 
             double homeHeight, double waitLiftPosition, 
             double openDogsLiftPosition, double closeDogsLiftPosition,
-            double homeOffset)
+            double homeOffset, AnalogInput infraredSensor)
     {
         leftTalon = leftLift;
         rightTalon = rightLift;
@@ -74,6 +74,7 @@ public class ToteLifter
         m_dropSubstate = "WaitForCommand";
         m_dropFullState = "WaitForCommand";
         totesDropped = false;
+        irSensor = infraredSensor;
     }
 
     void inputConstants(double leftP, double leftI, 
@@ -211,6 +212,10 @@ public class ToteLifter
         m_stateMode = "DropTotes";
         piControllerLeft.reinit();
         piControllerRight.reinit();
+        if(irSensor.getAverageVoltage() > 1)
+        {
+        	dropAllTotes();
+        }
     }
     
     void dropFullTotes()

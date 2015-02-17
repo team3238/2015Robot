@@ -150,6 +150,7 @@ public class Robot extends IterativeRobot
         gyroSensor = new AnalogInput(GYROSENSORPORT);
         gyroSensor.setAverageBits(2);
         infraredSensor = new AnalogInput(IRSENSORPORT);
+        infraredSensor.setAverageBits(2);
         sonarSensor = new AnalogInput(SONARSENSORPORT);
         accelerometer = new BuiltInAccelerometer();
         
@@ -184,7 +185,7 @@ public class Robot extends IterativeRobot
                 lifterRightPot, m_lifterLeftP, m_lifterLeftI, m_lifterRightP, 
                 m_lifterRightI, m_lifterAccuracyThreshold, m_lifterHomeHeight, 
                 m_lifterWaitLiftPosition, m_lifterOpenDogsLiftPosition, 
-                m_lifterCloseDogsLiftPosition, m_homeOffset);
+                m_lifterCloseDogsLiftPosition, m_homeOffset, infraredSensor);
         
         autonomous = new Autonomous(chassis, m_infraredDistanceTrigger, 
         		m_timeIgnore, m_timeDriveBack, m_timeDriveAway, 
