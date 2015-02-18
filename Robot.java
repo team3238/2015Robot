@@ -187,9 +187,7 @@ public class Robot extends IterativeRobot
                 m_lifterWaitLiftPosition, m_lifterOpenDogsLiftPosition, 
                 m_lifterCloseDogsLiftPosition, m_homeOffset, infraredSensor);
         
-        autonomous = new Autonomous(chassis, m_infraredDistanceTrigger, 
-        		m_timeIgnore, m_timeDriveBack, m_timeDriveAway, 
-        		m_moveBackSpeed);
+        autonomous = new Autonomous(chassis);
     }
 
     public void setSubsystemConstants()
@@ -268,8 +266,8 @@ public class Robot extends IterativeRobot
                 m_lifterHomeHeight, m_lifterWaitLiftPosition, 
                 m_lifterOpenDogsLiftPosition, m_lifterCloseDogsLiftPosition, 
                 m_homeOffset);
-        autonomous.inputConstants(m_infraredDistanceTrigger, m_timeIgnore, 
-                m_timeDriveBack, m_timeDriveAway, m_moveBackSpeed);
+        //autonomous.inputConstants(m_infraredDistanceTrigger, m_timeIgnore, 
+        //        m_timeDriveBack, m_timeDriveAway, m_moveBackSpeed);
     }
 
     public void autonomousInit()
@@ -281,8 +279,12 @@ public class Robot extends IterativeRobot
         rightLifterServo.setAngle(180);
         //toteLifter.reinitPIControllers();
         //toteLifter.zeroPots();
+        //grabber.zeroPots();
+        //grabber.grabStepCan();
+        grabber.reset();
+        autonomous.init();
         grabber.zeroPots();
-        grabber.grabStepCan();
+        
     }
 
     /**
@@ -293,11 +295,15 @@ public class Robot extends IterativeRobot
         //toteLifter.mapPots();
         //System.out.print("Left: " + toteLifter.m_leftHeight);
         //System.out.println(" Right: " + toteLifter.m_rightHeight);
-        chassis.setJoystickData(0, 0, 0);
+        //chassis.setJoystickData(0, 0, 0);
+        autonomous.idle(chassis, gyroSensor.getAverageVoltage(), m_spinThreshold, 
+                toteLifter, grabber, m_gyroPConstant, m_gyroIConstant);
         chassis.idle();
         grabber.idle();
-        //System.out.println(grabber.m_canHorizontalState);
         System.out.println(grabber.horizontalTalon.getOutputCurrent());
+        //grabber.idle();
+        //System.out.println(grabber.m_canHorizontalState);
+        //System.out.println(grabber.horizontalTalon.getOutputCurrent());
 //        grabber.goToLength(0.689);
         
 //        System.out.println(toteLifter.goToHeight(0.4));
@@ -322,6 +328,8 @@ public class Robot extends IterativeRobot
     public void teleopPeriodic()
     {
 //        toteLifter.mapPots();
+          toteLifter.mapDistance();
+          //System.out.println(toteLifter.m_infraredDistance);
 //        System.out.print("Left: " + toteLifter.m_leftHeight);
 //        System.out.println(" Right: " + toteLifter.m_rightHeight);
           m_previousTopHatValue = m_topHatValue;
@@ -348,9 +356,9 @@ public class Robot extends IterativeRobot
         {
             toteLifter.dropFullTotes();
         }
-        //if(joystickZero.getRawButton(4))
+        if(joystickZero.getRawButton(9))
         {
-            //toteLifter.dropAllTotes();//combined with normal drop later
+            grabber.goToAvoidTotePosition();
         }
         if(joystickZero.getRawButton(3))
         {
@@ -376,10 +384,12 @@ public class Robot extends IterativeRobot
         {
             grabber.goHome();
         }
-        System.out.println("HorizontalState = "+grabber.m_toteHorizontalState);
+        //System.out.println(0.2680762026*Math.pow(infraredSensor.getAverageVoltage(),
+        //        -1.130124285));
         ///System.out.println(toteLifter.leftTalon.getOutputCurrent());
         //System.out.println(toteLifter.leftTalon.getOutputCurrent());
         //System.out.println(grabber.horizontalTalon.getOutputCurrent());
+        System.out.println(grabber.m_horizontalPotDistance);
         toteLifter.idle();
         //System.out.println("Tote = "+ grabber.m_toteHorizontalState );
         //System.out.println("                                     Can = "+grabber.m_canHorizontalState);
@@ -397,29 +407,10 @@ public class Robot extends IterativeRobot
         	grabber.reset();
         	//grabber.horizontalTalon.set(0);
         	//grabber.verticalTalon.set(0);
-        	System.out.println(m_topHatValue);
+        	//System.out.println(m_topHatValue);
         	grabber.verticalTalon.set(1*Math.sin((m_topHatValue+90)*(Math.PI/180.0)));
         	grabber.horizontalTalon.set(0.75*Math.cos((m_topHatValue+270)*(Math.PI/180.0)));
         }
-//        System.out.print("m_pauseDistanceFromObject: " + grabber.m_pauseDistanceFromObject);
-//        System.out.print(" m_horizontalPotDistance: " + grabber.m_horizontalPotDistance);
-//        System.out.println(" m_horizontalThreshold: " + grabber.m_horizontalThreshold);
-//        chassis.setJoystickData(0, 0, 0);
-//        chassis.idle();
-
-//        System.out.print("LeftAmps: " + leftLifterTalon.getOutputCurrent());
-//        System.out.println
-//                (" RightAmps: " + rightLifterTalon.getOutputCurrent());
-//        System.out.print(" AddSubstate: " + toteLifter.m_addSubstate);
-//        System.out.println(toteLifter.m_dropFullState);
-//        System.out.print(" Left: " + toteLifter.m_leftHeight);
-//        System.out.println(" Right: " + toteLifter.m_rightHeight);
-        
-//        System.out.print("horizontalState: " + grabber.m_canHorizontalState);
-//        System.out.print(" verticalState: " + grabber.m_verticalState);
-//        System.out.print(" Horizontal: " + grabber.m_horizontalPotDistance);
-//        System.out.print(" Vertical: " + grabber.m_verticalPotDistance);
-//        System.out.println(" Sonar: " + grabber.m_sonarDistance);
         
     	double x = joystickZero.getX();
 		double y = joystickZero.getY();
@@ -483,10 +474,6 @@ public class Robot extends IterativeRobot
      */
     public void testPeriodic()
     {
-        System.out.println(infraredSensor.getAverageVoltage());
-        //grabberVerticalTalon.set(-joystickTwo.getY());
-        //grabberHorizontalTalon.set(joystickTwo.getX());
-        //System.out.println("leftCurrent : "+leftLifterTalon.getOutputCurrent() +"rightCurrent : "+rightLifterTalon.getOutputCurrent());
         double twist = joystickZero.getTwist();
         if(twist < 0)
         {
@@ -500,9 +487,8 @@ public class Robot extends IterativeRobot
                 twist = twist*(1/.65);
             }
         }
-        //System.out.println(twist);
-        //leftLifterTalon.set(-joystickZero.getY());
-        //rightLifterTalon.set(joystickOne.getY());        
+        leftLifterTalon.set(-joystickZero.getY());
+        rightLifterTalon.set(joystickOne.getY());        
         if(joystickZero.getRawButton(1))
         {
             leftLifterServo.setAngle(0);

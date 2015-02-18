@@ -93,18 +93,35 @@ public class Chassis
         {
             mappedY = m_yValue * m_yValue;
         }
+        
+        
         if(m_twistValue < 0)
         {
-            mappedTwist = -(m_twistValue * m_twistValue);
+            if(m_twistValue > -0.75)
+            {
+                mappedTwist = 0.3333*m_twistValue;
+            }
+            else
+            {
+                mappedTwist = -0.4444*(m_twistValue * m_twistValue);
+            }
         } 
         else
         {
-            mappedTwist = m_twistValue * m_twistValue;
+            if(m_twistValue < 0.75)
+            {
+                mappedTwist = 0.3333*m_twistValue;
+            }
+            else
+            {
+                mappedTwist = 0.4444*(m_twistValue * m_twistValue);
+            }
         }
         /*
          * Inputs the mapped values into the cartesian mecanum drive method of
          * the drivetrain object, which will set the power of the Talons for us
          */
         drivetrain.mecanumDrive_Cartesian(mappedX, mappedY, mappedTwist, 0.0);
+        //System.out.println("Mapped Twist = " + mappedTwist);
     }
 }

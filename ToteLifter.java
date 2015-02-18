@@ -47,6 +47,8 @@ public class ToteLifter
     boolean m_leftFoundHome;
     boolean m_rightFoundHome;
     
+    double m_infraredDistance;
+    
     ToteLifter(CANTalon leftLift, CANTalon rightLift, Servo leftServo, 
             Servo rightServo, AnalogInput potentiometerLeft, 
             AnalogInput potentiometerRight, double leftP, double leftI, 
@@ -125,7 +127,13 @@ public class ToteLifter
         m_leftHeight =  0.132 * leftPot.getAverageVoltage() + 
                 m_leftPotYIntercept - 0.005;
         m_rightHeight = -0.132 * rightPot.getAverageVoltage() + 
-                m_rightPotYIntercept;
+                m_rightPotYIntercept + 0.005;
+    }
+    
+    void mapDistance()
+    {
+        m_infraredDistance = 0.2680762026*Math.pow(irSensor.getAverageVoltage(),
+                -1.130124285);
     }
 
     /**
@@ -208,11 +216,14 @@ public class ToteLifter
      */
     void dropTotes()
     {
+        piControllerLeft.setThrottle(1.0);
+        piControllerRight.setThrottle(1.0);
         m_dropSubstate = "GoToOpenDogsPosition";
         m_stateMode = "DropTotes";
         piControllerLeft.reinit();
         piControllerRight.reinit();
-        if(irSensor.getAverageVoltage() > 1)
+        mapDistance();
+        if(m_infraredDistance < 0.15)
         {
         	dropAllTotes();
         }
@@ -228,6 +239,8 @@ public class ToteLifter
     
     void dropAllTotes()
     {
+        piControllerLeft.setThrottle(1.0);
+        piControllerRight.setThrottle(1.0);
         m_dropFullState = "GoToPointFour";
         m_stateMode = "DropFullTotes";
         piControllerLeft.reinit();
@@ -239,6 +252,8 @@ public class ToteLifter
      */
     void addTote()
     {
+        piControllerLeft.setThrottle(1.0);
+        piControllerRight.setThrottle(1.0);
         m_addSubstate = "GoToLiftPosition";
         m_stateMode = "AddTote";
         piControllerLeft.reinit();
@@ -258,6 +273,8 @@ public class ToteLifter
     
     boolean goToHome()
     {
+        piControllerLeft.setThrottle(1.0);
+        piControllerRight.setThrottle(1.0);
         if(leftTalon.getOutputCurrent() < 14 && !m_leftFoundHome)
         {
             leftTalon.set(1);
@@ -372,7 +389,15 @@ public class ToteLifter
                         rightTalon.set(0);
                         if(System.currentTimeMillis() - m_timeStamp > 500)
                         {
-                            m_dropFullState = "GoToLastLiftPosition";
+                            m_dropFullState = "GoToAlmostHome";
+                        }
+                        break;
+                        
+        	        case "GoToAlmostHome":
+                        if(goToHeight(0.25))
+                        {
+                            m_dropSubstate = "GoToLastLiftPosition";
+                            totesDropped = true;
                         }
                         break;
                         
@@ -495,7 +520,6 @@ public class ToteLifter
                         if(goToHeight(0.25))
                         {
                             m_dropSubstate = "GoToLiftPosition";
-                            totesDropped = true;
                         }
                         break;
 

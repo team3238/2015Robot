@@ -37,7 +37,7 @@ iConstantRight
 0.0025
 
 accuracy threshold for lifter 
-0.005
+0.006
 
 servo close position
 30
@@ -69,13 +69,13 @@ toteExtendHeight
 0.165
 
 toteGrabHeight
-0.2
+0.22
 
 stepCanExtendHeight
 0.55
 
 stepCanGrabHeight
-0.917
+0.8
 
 retractedLocation
 0.120
@@ -120,7 +120,7 @@ homeOffset
 -0.03
 
 gyroPConstant
-2
+1
 
 gyroIConstant
 0

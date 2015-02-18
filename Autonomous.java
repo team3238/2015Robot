@@ -1,7 +1,5 @@
 package org.usfirst.frc.team3238.robot;
 
-import edu.wpi.first.wpilibj.BuiltInAccelerometer;
-import edu.wpi.first.wpilibj.DigitalInput;
 
 /**
  *
@@ -20,34 +18,16 @@ public class Autonomous
 
     public static class AutoState
     {
-        public static final int collectingTote = 0, moveRightLineTrack = 1,
-                moveRightAccelAssist = 2, moveBackwards = 3, dropTotes = 4,
-                driveAway = 5, done = 6;
+        public static final int driveOffRamp = 0, pickUpCan = 1,
+                translateRight = 2, waitToTranslate = 3, done = 4,
+                goBack = 5;
     }
 
-    Autonomous(Chassis chassis, double infraredDistanceTrigger, 
-    		long timeIgnore, int timeDriveBack, int timeDriveAway, 
-    		double moveBackSpeed)
+    Autonomous(Chassis chassis)
     {
-        m_infraredDistanceTrigger = infraredDistanceTrigger;
-        m_timeIgnore = timeIgnore;
-        m_timeDriveBack = timeDriveBack;
-        m_timeDriveAway = timeDriveAway;
-        m_moveBackSpeed = moveBackSpeed;
+        
     }
     
-    
-    void inputConstants(double infraredDistanceTrigger, 
-		long timeIgnore, int timeDriveBack, int timeDriveAway, 
-		double moveBackSpeed)
-	{
-    	m_infraredDistanceTrigger = infraredDistanceTrigger;
-        m_timeIgnore = timeIgnore;
-        m_timeDriveBack = timeDriveBack;
-        m_timeDriveAway = timeDriveAway;
-        m_moveBackSpeed = moveBackSpeed;
-	}
-
     /**
      * Re-initializes the autonomous period so that the variables are set up to
      * be at the beginning of the autonomous
@@ -55,9 +35,8 @@ public class Autonomous
      */
     void init()
     {
-        m_collectCount = 0;
         m_timeStamp = System.currentTimeMillis();
-        m_autoState = AutoState.collectingTote;
+        m_autoState = AutoState.driveOffRamp;
     }
 
     /**
@@ -80,107 +59,67 @@ public class Autonomous
      * @param infraredDistance
      *            The distance that the infra sensor is reading
      */
-    void idle(Chassis chassis, DigitalInput reflectSensorRear,
-            DigitalInput reflectSensorFront, int gyroValue,
-            double spinThreshold, BuiltInAccelerometer accelerometer,
-            double infraredDistance, ToteLifter toteLifter, Grabber grabber,
-            PIController piContLifterLeft, PIController piContLifterRight)
+    void idle(Chassis chassis, double gyroValue,
+            double spinThreshold, ToteLifter toteLifter, Grabber grabber, 
+            double gyroPConstant, double gyroIConstant)
     {
         switch(m_autoState)
         {
-            case AutoState.collectingTote:
+            case (AutoState.driveOffRamp):
+                if(System.currentTimeMillis() - m_timeStamp < 375)
+                {
+                    chassis.setJoystickData(0, -0.5, 0);
+                }
+                else
+                {
+                    chassis.setJoystickData(0, 0, 0);
+                    m_autoState = AutoState.pickUpCan;
+                }
+                break;
+                
+            case (AutoState.pickUpCan):
+                grabber.grabStepCanAuto();
+                m_autoState = AutoState.waitToTranslate;
+                break;
+                
+            case (AutoState.waitToTranslate):
                 chassis.setJoystickData(0, 0, 0);
-                if(grabber.doneCollecting())
-                // Grabber.collecting should return true when it
-                // finishes collecting
+                if(grabber.m_finishedAutoGrab)
                 {
-                    toteLifter.addTote();
-                    // ToteLifter.storeTote tells the ToteLifter to start
-                    // lifting the tote,
-                    switch(m_collectCount)
-                    {
-                        case 0:
-                            m_autoState = AutoState.moveRightLineTrack;
-                            m_timeStamp = System.currentTimeMillis();
-                            break;
-
-                        case 1:
-                            m_autoState = AutoState.moveRightAccelAssist;
-                            m_timeStamp = System.currentTimeMillis();
-                            break;
-
-                        case 2:
-                            m_autoState = AutoState.moveBackwards;
-                            m_timeStamp = System.currentTimeMillis();
-                            break;
-
-                        default:
-                            break;
-                    }
-                    m_collectCount += 1;
-                }
-                break;
-
-            case AutoState.moveRightLineTrack:
-                if((m_timeStamp >= m_timeIgnore)
-                        && (infraredDistance < m_infraredDistanceTrigger))
-                {
-                    m_autoState = AutoState.collectingTote;
+                    System.out.println("*****************************************");
+                    m_autoState = AutoState.goBack;
                     m_timeStamp = System.currentTimeMillis();
-                    break;
                 }
-                LineTrack.lineTrack(reflectSensorFront, reflectSensorRear,
-                        chassis, spinThreshold, gyroValue);
                 break;
-
-            case AutoState.moveRightAccelAssist:
-                if((m_timeStamp >= m_timeIgnore)
-                        && (infraredDistance < m_infraredDistanceTrigger))
+                
+            case (AutoState.goBack):
+                chassis.setJoystickData(0, 0.5, 0);
+                if(System.currentTimeMillis() - m_timeStamp > 250)
                 {
-                    m_autoState = AutoState.collectingTote;
+                    m_autoState = AutoState.translateRight;
                     m_timeStamp = System.currentTimeMillis();
-                    break;
-                }
-                chassis.setJoystickData(.5, 0, 0);
-                break;
-
-            case AutoState.moveBackwards:
-                if(System.currentTimeMillis() - m_timeStamp >= m_timeDriveBack)
-                {
-                    m_autoState = AutoState.dropTotes;
-                    toteLifter.dropTotes();
-                    m_timeStamp = System.currentTimeMillis();
-                    break;
-                }
-                chassis.setJoystickData(0, -m_moveBackSpeed, 0);
-                break;
-
-            case AutoState.dropTotes:
-                chassis.setJoystickData(0, 0, 0);
-
-                if(toteLifter.getTotesDropped())
-                {
-                    m_autoState = AutoState.driveAway;
-                    m_timeStamp = System.currentTimeMillis();
-                    break;
                 }
                 break;
-
-            case AutoState.driveAway:
-                if(System.currentTimeMillis() - m_timeStamp >= m_timeDriveAway)
+                
+            case (AutoState.translateRight):
+                System.out.println("Trying to translate!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                double adjustedRotation = GyroDrive.getAdjustedRotationValue(
+                        0.9, 0.1, 0, gyroPConstant, gyroIConstant, 
+                        spinThreshold, gyroValue - 2.37);
+                chassis.setJoystickData(0.9, 0.1, adjustedRotation);
+                if(System.currentTimeMillis() - m_timeStamp > 1000)
                 {
                     m_autoState = AutoState.done;
-                    m_timeStamp = System.currentTimeMillis();
-                    break;
                 }
-                chassis.setJoystickData(0, -m_moveBackSpeed, 0);
+                
                 break;
-
-            case AutoState.done:
+                
+            case (AutoState.done):
                 chassis.setJoystickData(0, 0, 0);
                 break;
-
+                
             default:
+                chassis.setJoystickData(0, 0, 0);
                 break;
         }
     }

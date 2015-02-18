@@ -20,6 +20,7 @@ public class Grabber
     double m_horizontalPotDistance;
     double m_verticalPotDistance;
     double m_sonarDistance;
+    double m_infraredDistance;
     double m_verticalPotSetpoint;
     double m_horizontalPotSetpoint;
 
@@ -64,6 +65,7 @@ public class Grabber
     String m_toteHorizontalState;
     String m_canHorizontalState;
     String m_verticalState;
+    String m_canAutoHorizontalState;
 
     // Status booleans
     boolean m_doneCollecting = false;
@@ -72,6 +74,7 @@ public class Grabber
     boolean m_verticalDone = false;
     boolean m_foundReadPosition = false;
     boolean m_horizontalFoundHome = false;
+    boolean m_finishedAutoGrab = false;
 
     Grabber(CANTalon verticalCANTalon, CANTalon horizontalCANTalon,
     		AnalogInput  grabberVerticalPot, AnalogInput  grabberHorizontalPot,
@@ -113,6 +116,7 @@ public class Grabber
         m_toteHorizontalState = "waitForCommand";
         m_canHorizontalState = "waitForCommand";
         m_verticalState = "waitForCommand";
+        m_canAutoHorizontalState = "waitForCommand";
         m_horizontalThreshold = horizontalThreshold;
         m_verticalThreshold = verticalThreshold;
         m_horizontalHome = horizontalHome;
@@ -193,6 +197,14 @@ public class Grabber
         m_canHorizontalState = "waitForVertical";
         m_readCanHeight = 0.55;
     }
+    
+    void grabStepCanAuto()
+    {
+        reset();
+        m_verticalState = "prepareForStepCanGrab";
+        m_canAutoHorizontalState = "waitForVertical";
+        m_readCanHeight = 0.55;
+    }
 
     void grabTote()
     {
@@ -206,10 +218,12 @@ public class Grabber
         m_verticalState = "waitForCommand";
         m_toteHorizontalState = "waitForCommand";
         m_canHorizontalState = "waitForCommand";
+        m_canAutoHorizontalState = "waitForCommand";
         m_verticalDone = false;
         m_horizontalExtended = false;
         m_foundReadPosition = false;
         m_hooked = false;
+        m_finishedAutoGrab = false;
         horizontalPI.reinit();
         verticalPI.reinit();
     }
@@ -238,6 +252,7 @@ public class Grabber
                 horizontalPot.getAverageVoltage() + m_horizontalYIntercept;
         m_verticalPotDistance = -0.2608156852 * verticalPot.getAverageVoltage()
                 + m_verticalYIntercept;
+        m_infraredDistance = 0.2680762026*Math.pow(irSensor.getAverageVoltage(), -1.130124285);
     }
 
     void zeroPots()
@@ -252,10 +267,18 @@ public class Grabber
     
     void goHome()
     {
+        reset();
     	m_horizontalFoundHome = false;
         m_toteHorizontalState = "goHome";
         m_verticalState = "goHome";
         horizontalPI.reinit();
+    }
+    
+    void goToAvoidTotePosition()
+    {
+        reset();
+        m_verticalState = "waitToAvoidTotePosition";
+        m_toteHorizontalState = "goHome";
     }
     
     double limitPIOutput(double motorPower)
@@ -283,7 +306,116 @@ public class Grabber
     void idle()
     {
         mapSensors();
+        System.out.println(m_canAutoHorizontalState);
+        switch(m_canAutoHorizontalState)
+        {
+            case "waitForCommand":
+                horizontalPI.reinit();
+                break;
 
+            case "waitForVertical":
+                if(m_verticalDone)
+                {
+                    m_canAutoHorizontalState = "waitForSensing";
+                    m_timestamp = System.currentTimeMillis();
+                    horizontalPI.inputConstants
+                        (m_horizontalP, m_horizontalI);
+                    horizontalPI.reinit();
+                }
+                horizontalTalon.set(0);
+                break;
+                
+            case "waitForSensing":
+                if(System.currentTimeMillis() - m_timestamp > 100)
+                {
+                    m_canAutoHorizontalState = "extending";
+                }
+                //m_canHorizontalSetpoint = m_sonarDistance;
+                break;
+                
+            case "extending":
+                horizontalPI.setThrottle(1.0);
+                m_doneCollecting = false;
+                m_horizontalExtended = false;
+//                System.out.println(Math.abs(m_canHorizontalSetpoint 
+//                        - m_pauseDistanceFromObject 
+//                        - m_horizontalPotDistance));
+                if(Math.abs(m_canHorizontalSetpoint - m_pauseDistanceFromObject 
+                        - m_horizontalPotDistance) > m_horizontalThreshold)
+                {
+                    horizontalPI.inputConstants(9999, 1);
+                    horizontalTalon.set(-horizontalPI.getMotorValue(
+                            m_canHorizontalSetpoint, m_horizontalPotDistance));
+                }
+                else
+                {
+                    m_canAutoHorizontalState = "finishExtending";
+                    horizontalPI.reinit();
+                    horizontalPI.setThrottle(1.0);
+//                    horizontalPI.inputConstants
+//                            (m_gentleHorizontalP, m_gentleHorizontalI);
+                }
+                break;
+                
+            case "finishExtending":
+                //Math.abs(
+                if(((m_canHorizontalSetpoint+.40) - m_horizontalPotDistance) 
+                        <= m_horizontalThreshold)
+                {
+                    //horizontalTalon.set(-horizontalPI.getMotorValue(
+                     //       m_canHorizontalSetpoint, m_horizontalPotDistance));
+                    horizontalTalon.set(0.75);
+                }
+                else
+                {
+                    m_canAutoHorizontalState = "waitForHook";
+                    m_horizontalExtended = true;
+                }
+                break;
+             
+            case "waitForHook":
+                if(m_hooked)
+                {
+                    m_canAutoHorizontalState = "retracting";
+                    horizontalPI.inputConstants(m_horizontalP, m_horizontalI);
+                    horizontalPI.reinit();
+                }
+                else
+                {
+                    horizontalTalon.set(0);
+                }
+                break;
+
+            case "retracting":
+                if((Math.abs(0.5 - m_horizontalPotDistance) 
+                        > m_horizontalThreshold) && m_horizontalPotDistance
+                        > m_slowDownRetractThreshold)
+                {
+                    horizontalPI.setThrottle(1.0);
+                    horizontalTalon.set(-horizontalPI.getMotorValue(
+                            0.5, m_horizontalPotDistance));
+                }
+                else if(horizontalTalon.getOutputCurrent() < 18)
+                {
+                    horizontalPI.setThrottle(0.8);
+                    horizontalTalon.set(-horizontalPI.getMotorValue(
+                            0.5, m_horizontalPotDistance));
+                }
+                else
+                {
+                    m_canAutoHorizontalState = "waitForCommand";
+                    m_verticalState = "lowerABit";
+                    horizontalTalon.set(0);
+                    m_doneCollecting = true;
+                }
+                break;
+                
+
+            default:
+                System.out.println(
+                        "Grabber m_canAutoHorizontalState is in default state!");
+                break;
+        }
         switch(m_toteHorizontalState)
         {
             case "waitForCommand":
@@ -429,6 +561,7 @@ public class Grabber
                 break;
         }
         
+        //System.out.println(m_canHorizontalState);
         switch(m_canHorizontalState)
         {
             case "waitForCommand":
@@ -542,6 +675,40 @@ public class Grabber
                 verticalPI.reinit();
                 break;
                 
+            case "lowerABit":
+                if(Math.abs(0.55 - m_verticalPotDistance) 
+                        > m_verticalThreshold)
+                {
+                    verticalTalon.set(-verticalPI.getMotorValue(
+                            0.55, m_verticalPotDistance));
+                }
+                else
+                {
+                    goHome();
+                }
+                break;
+                
+            case "waitToAvoidTotePosition":
+                if(m_horizontalFoundHome == true)
+                {
+                    m_verticalState = "avoidTotePosition";
+                }
+                verticalTalon.set(0);
+                break;
+                
+            case "avoidTotePosition":
+                if(Math.abs(0.4 - m_verticalPotDistance) 
+                        > m_verticalThreshold)
+                {
+                    verticalTalon.set(-verticalPI.getMotorValue(
+                            0.4, m_verticalPotDistance));
+                }
+                else
+                {
+                    m_verticalState = "waitForCommand";
+                }
+                break;
+                
             case "goHome":
                 if(m_horizontalFoundHome)
                 {
@@ -557,6 +724,8 @@ public class Grabber
                         verticalTalon.set(0);
                         zeroPots();
                         reset();
+                        m_finishedAutoGrab = true;
+                        System.out.println("////////////////////////////////////////////");
                     }
                 }
                 else
