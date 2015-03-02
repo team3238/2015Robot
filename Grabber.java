@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.CANTalon;
 /**
  * This is the class that controls the vertical and horizontal collector.
  *
- * @author Aaron Jenson and Nick Papadakis and Anders Sjoboen
+ * @author Aaron Jenson, Nick Papadakis, and Anders Sjoboen
  */
 
 public class Grabber
@@ -252,7 +252,8 @@ public class Grabber
                 horizontalPot.getAverageVoltage() + m_horizontalYIntercept;
         m_verticalPotDistance = -0.2608156852 * verticalPot.getAverageVoltage()
                 + m_verticalYIntercept;
-        m_infraredDistance = 0.2680762026*Math.pow(irSensor.getAverageVoltage(), -1.130124285);
+        m_infraredDistance = 0.2680762026 * 
+                Math.pow(irSensor.getAverageVoltage(), -1.130124285);
     }
 
     void zeroPots()

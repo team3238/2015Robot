@@ -122,6 +122,5 @@ public class Chassis
          * the drivetrain object, which will set the power of the Talons for us
          */
         drivetrain.mecanumDrive_Cartesian(mappedX, mappedY, mappedTwist, 0.0);
-        //System.out.println("Mapped Twist = " + mappedTwist);
     }
 }

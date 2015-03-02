@@ -178,7 +178,8 @@ public class Robot extends IterativeRobot
         		m_toteExtendHeight, m_toteGrabHeight, m_stepCanExtendHeight, 
         		m_stepCanGrabHeight, m_retractedLocation, 
                 m_pauseDistanceFromObject, m_grabberHorizontalHome, 
-                m_grabberVerticalHome, m_slowDownRetractThreshold, infraredSensor);
+                m_grabberVerticalHome, m_slowDownRetractThreshold, 
+                infraredSensor);
         
         toteLifter = new ToteLifter(leftLifterTalon, rightLifterTalon, 
                 leftLifterServo, rightLifterServo, lifterLeftPot, 
@@ -296,8 +297,9 @@ public class Robot extends IterativeRobot
         //System.out.print("Left: " + toteLifter.m_leftHeight);
         //System.out.println(" Right: " + toteLifter.m_rightHeight);
         //chassis.setJoystickData(0, 0, 0);
-        autonomous.idle(chassis, gyroSensor.getAverageVoltage(), m_spinThreshold, 
-                toteLifter, grabber, m_gyroPConstant, m_gyroIConstant);
+        autonomous.idle(chassis, gyroSensor.getAverageVoltage(), 
+                m_spinThreshold, toteLifter, grabber, m_gyroPConstant, 
+                m_gyroIConstant);
         chassis.idle();
         grabber.idle();
         System.out.println(grabber.horizontalTalon.getOutputCurrent());
