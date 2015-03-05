@@ -18,6 +18,7 @@ public class Grabber
 
     // Store sensor values
     double m_horizontalPotDistance;
+    double m_previousHorizontalPotDistance;
     double m_verticalPotDistance;
     double m_sonarDistance;
     double m_infraredDistance;
@@ -124,6 +125,7 @@ public class Grabber
         m_slowDownRetractThreshold = slowDownRetractThreshold;
         m_retractedLocation = retractedLocation;
         irSensor = infraredSensor;
+        m_horizontalPotDistance = 0;
     }
     
     void inputConstants(double verticalPConstant, double verticalIConstant,
@@ -202,8 +204,9 @@ public class Grabber
     {
         reset();
         m_verticalState = "prepareForStepCanGrab";
-        m_canAutoHorizontalState = "waitForVertical";
+        m_canAutoHorizontalState = "waitForSensing";
         m_readCanHeight = 0.55;
+        m_timestamp = System.currentTimeMillis();
     }
 
     void grabTote()
@@ -233,7 +236,7 @@ public class Grabber
         mapSensors();
         verticalTalon.set(-verticalPI.getMotorValue(
                 height, m_verticalPotDistance));
-        System.out.println(m_verticalPotDistance);
+        //System.out.println(m_verticalPotDistance);
     }
     
     void goToLength(double length)
@@ -241,13 +244,14 @@ public class Grabber
         mapSensors();
         horizontalTalon.set(-horizontalPI.getMotorValue
                 (length, m_horizontalPotDistance));
-        System.out.println(m_horizontalPotDistance);
+        //System.out.println(m_horizontalPotDistance);
     }
     
     void mapSensors()
     {
         ultrasonicFilter.addData(2.2121617347 * sonar.getVoltage() + 0.09);
         m_sonarDistance = ultrasonicFilter.getMedian();
+        m_previousHorizontalPotDistance = m_horizontalPotDistance;
         m_horizontalPotDistance = -0.4364133427 * 
                 horizontalPot.getAverageVoltage() + m_horizontalYIntercept;
         m_verticalPotDistance = -0.2608156852 * verticalPot.getAverageVoltage()
@@ -307,7 +311,7 @@ public class Grabber
     void idle()
     {
         mapSensors();
-        System.out.println(m_canAutoHorizontalState);
+        //System.out.println(m_canAutoHorizontalState);
         switch(m_canAutoHorizontalState)
         {
             case "waitForCommand":
@@ -327,10 +331,12 @@ public class Grabber
                 break;
                 
             case "waitForSensing":
-                if(System.currentTimeMillis() - m_timestamp > 100)
+                if(System.currentTimeMillis() - m_timestamp > 1150)
                 {
                     m_canAutoHorizontalState = "extending";
+                    
                 }
+                horizontalTalon.set(0);
                 //m_canHorizontalSetpoint = m_sonarDistance;
                 break;
                 
@@ -338,18 +344,21 @@ public class Grabber
                 horizontalPI.setThrottle(1.0);
                 m_doneCollecting = false;
                 m_horizontalExtended = false;
+                m_canAutoHorizontalState = "finishExtending";
+                System.out.println("TRYING TO EXTEND!!!!!!!");
 //                System.out.println(Math.abs(m_canHorizontalSetpoint 
 //                        - m_pauseDistanceFromObject 
 //                        - m_horizontalPotDistance));
                 if(Math.abs(m_canHorizontalSetpoint - m_pauseDistanceFromObject 
                         - m_horizontalPotDistance) > m_horizontalThreshold)
                 {
-                    horizontalPI.inputConstants(9999, 1);
-                    horizontalTalon.set(-horizontalPI.getMotorValue(
+                    //horizontalPI.inputConstants(9999, 1);
+                    horizontalTalon.set(horizontalPI.getMotorValue(
                             m_canHorizontalSetpoint, m_horizontalPotDistance));
                 }
                 else
                 {
+                    System.out.println("BEFORE Finish Extending!!!!!!!");
                     m_canAutoHorizontalState = "finishExtending";
                     horizontalPI.reinit();
                     horizontalPI.setThrottle(1.0);
@@ -360,23 +369,27 @@ public class Grabber
                 
             case "finishExtending":
                 //Math.abs(
-                if(((m_canHorizontalSetpoint+.40) - m_horizontalPotDistance) 
-                        <= m_horizontalThreshold)
+                System.out.println("Finish Extending!!!!!!!");
+                if((horizontalTalon.getOutputCurrent() < 25))
+                //ifMath.abs(m_previousHorizontalPotDistance - m_horizontalPotDistance) < 0.)
                 {
-                    //horizontalTalon.set(-horizontalPI.getMotorValue(
-                     //       m_canHorizontalSetpoint, m_horizontalPotDistance));
-                    horizontalTalon.set(0.75);
+                    horizontalTalon.set(horizontalPI.getMotorValue(
+                            m_canHorizontalSetpoint, m_horizontalPotDistance));
+                    //horizontalTalon.set(-0.65);
+                    System.out.println("Trying to extend outward");
                 }
                 else
                 {
                     m_canAutoHorizontalState = "waitForHook";
                     m_horizontalExtended = true;
+                    horizontalTalon.set(0);
                 }
                 break;
              
             case "waitForHook":
                 if(m_hooked)
                 {
+                    System.out.println("waiting for hook");
                     m_canAutoHorizontalState = "retracting";
                     horizontalPI.inputConstants(m_horizontalP, m_horizontalI);
                     horizontalPI.reinit();
@@ -396,18 +409,21 @@ public class Grabber
                     horizontalTalon.set(-horizontalPI.getMotorValue(
                             0.5, m_horizontalPotDistance));
                 }
-                else if(horizontalTalon.getOutputCurrent() < 18)
+                else 
                 {
-                    horizontalPI.setThrottle(0.8);
-                    horizontalTalon.set(-horizontalPI.getMotorValue(
-                            0.5, m_horizontalPotDistance));
-                }
-                else
-                {
-                    m_canAutoHorizontalState = "waitForCommand";
-                    m_verticalState = "lowerABit";
-                    horizontalTalon.set(0);
-                    m_doneCollecting = true;
+                    if(horizontalTalon.getOutputCurrent() < 18)
+                    {
+                        horizontalPI.setThrottle(0.8);
+                        horizontalTalon.set(-horizontalPI.getMotorValue(
+                                0.5, m_horizontalPotDistance));
+                    }
+                    else
+                    {
+                        m_canAutoHorizontalState = "waitForCommand";
+                        m_verticalState = "lowerABit";
+                        horizontalTalon.set(0);
+                        m_doneCollecting = true;
+                    }
                 }
                 break;
                 
@@ -504,7 +520,7 @@ public class Grabber
                 break;
                 
             case "finishExtending":
-                if(Math.abs(m_toteHorizontalSetpoint - m_horizontalPotDistance) 
+                if(Math.abs((m_toteHorizontalSetpoint+.4) - m_horizontalPotDistance) 
                         > m_horizontalThreshold)
                 {
                     horizontalPI.setThrottle(1);
@@ -605,6 +621,7 @@ public class Grabber
                 }
                 else
                 {
+                    System.out.println("BEFORE Finish Extending!!!!!!!");
                     m_canHorizontalState = "finishExtending";
                     horizontalPI.reinit();
                     horizontalPI.setThrottle(0.7);
@@ -614,7 +631,8 @@ public class Grabber
                 break;
                 
             case "finishExtending":
-                if(Math.abs(m_canHorizontalSetpoint - m_horizontalPotDistance) 
+                System.out.println("Finish Extending!!!!!!!");
+                if(Math.abs((m_canHorizontalSetpoint - 0.05) - m_horizontalPotDistance) 
                         > m_horizontalThreshold)
                 {
                     horizontalTalon.set(-horizontalPI.getMotorValue(
@@ -780,7 +798,7 @@ public class Grabber
                 System.out.println("Extend Height = "+m_extendHeight);
                 m_grabHeight = m_stepCanGrabHeight;
                 System.out.println("Grab Height = "+m_grabHeight);
-                m_verticalState = "goToReadHeight";
+                m_verticalState = "goToExtendHeight";
                 m_readHeight = m_readCanStepHeight;
                 break;
                 

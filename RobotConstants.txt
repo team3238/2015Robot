@@ -63,7 +63,7 @@ canExtendHeight
 0.391
 
 canGrabHeight
-0.85
+0.777
 
 toteExtendHeight
 0.165

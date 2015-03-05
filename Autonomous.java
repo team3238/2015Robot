@@ -33,10 +33,11 @@ public class Autonomous
      * be at the beginning of the autonomous
      * 
      */
-    void init()
+    void init(ToteLifter toteLifter)
     {
         m_timeStamp = System.currentTimeMillis();
         m_autoState = AutoState.driveOffRamp;
+        //toteLifter.approachHome();
     }
 
     /**
@@ -63,6 +64,7 @@ public class Autonomous
             double spinThreshold, ToteLifter toteLifter, Grabber grabber, 
             double gyroPConstant, double gyroIConstant)
     {
+        
         switch(m_autoState)
         {
             case (AutoState.driveOffRamp):

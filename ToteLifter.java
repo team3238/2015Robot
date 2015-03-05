@@ -116,18 +116,18 @@ public class ToteLifter
     
     void zeroPots()
     {
-        m_leftPotYIntercept = m_homeHeight - (0.132 * 
+        m_leftPotYIntercept = m_homeHeight - (0.121 * 
                 leftPot.getAverageVoltage());
-        m_rightPotYIntercept = m_homeHeight - (-0.132 * 
+        m_rightPotYIntercept = m_homeHeight - (-0.121 * 
                 rightPot.getAverageVoltage());
     }
     
     void mapPots()
     {
-        m_leftHeight =  0.132 * leftPot.getAverageVoltage() + 
-                m_leftPotYIntercept - 0.005;
-        m_rightHeight = -0.132 * rightPot.getAverageVoltage() + 
-                m_rightPotYIntercept + 0.005;
+        m_leftHeight =  0.121 * leftPot.getAverageVoltage() + 
+                m_leftPotYIntercept - 0.007;
+        m_rightHeight = -0.121 * rightPot.getAverageVoltage() + 
+                m_rightPotYIntercept - 0.007;
     }
     
     void mapDistance()
@@ -270,6 +270,11 @@ public class ToteLifter
         m_stateMode = "GoHome";
     }
     
+    void goToHomeOnly()
+    {
+        m_stateMode = "GoHomeOnly";
+    }
+    
     
     boolean goToHome()
     {
@@ -326,6 +331,15 @@ public class ToteLifter
         	case "WaitForCommand":
         		leftTalon.set(0);
         		rightTalon.set(0);
+        	    break;
+        	    
+        	case "GoHomeOnly":
+        	    if(goToHome())
+        	    {
+        	        m_stateMode = "WaitForCommand";
+                    piControllerLeft.reinit();
+                    piControllerRight.reinit();
+        	    }
         	    break;
         	    
         	case "GoHome":
