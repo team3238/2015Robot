@@ -49,6 +49,11 @@ public class ToteLifter
     
     double m_infraredDistance;
     
+    boolean m_manuelControl;
+    double m_manuelPosition;
+    
+    boolean m_goAllTheWayDownOnDrop;
+    
     ToteLifter(CANTalon leftLift, CANTalon rightLift, Servo leftServo, 
             Servo rightServo, AnalogInput potentiometerLeft, 
             AnalogInput potentiometerRight, double leftP, double leftI, 
@@ -77,6 +82,9 @@ public class ToteLifter
         m_dropFullState = "WaitForCommand";
         totesDropped = false;
         irSensor = infraredSensor;
+        m_manuelControl = false;
+        m_manuelPosition = 0.5;
+        m_goAllTheWayDownOnDrop = true;
     }
 
     void inputConstants(double leftP, double leftI, 
@@ -326,232 +334,258 @@ public class ToteLifter
     void idle()
     {
         totesDropped = false;
-        switch(m_stateMode)
+        if(!m_manuelControl)
         {
-        	case "WaitForCommand":
-        		leftTalon.set(0);
-        		rightTalon.set(0);
-        	    break;
-        	    
-        	case "GoHomeOnly":
-        	    if(goToHome())
-        	    {
-        	        m_stateMode = "WaitForCommand";
-                    piControllerLeft.reinit();
-                    piControllerRight.reinit();
-        	    }
-        	    break;
-        	    
-        	case "GoHome":
-        	    if(goToHome())
-        	    {
-        	        m_stateMode = "WaitHome";
-        	        piControllerLeft.reinit();
-                    piControllerRight.reinit();
-        	    }
-        	    break;
-        	    
-        	case "WaitHome":
-        	    if(goToHeight(m_waitLiftPosition))
-                {
-                    m_stateMode = "WaitForCommand";
-                }
-        	    break;
-        	    
-        	case "DropFullTotes":
-        	    switch(m_dropFullState)
-        	    {
-        	        case"WaitForCommand":
-        	            
-        	            break;
-        	            
-        	        case "GoToLiftPosition":
-                        if(goToHome())
-                        {
-                            m_dropFullState = "GoToFullPosition";
-                            piControllerLeft.reinit();
-                            piControllerRight.reinit();
-                        }
-                        break;
-        	            
-        	        case "GoToFullPosition":
-        	            //System.out.println("Left Height: "+ m_leftHeight + "             Right Height: "+m_rightHeight);
-                        if(goToHeight(0.30))
-                        {
-                            m_dropFullState = "WaitForCommand";
-                            piControllerLeft.reinit();
-                            piControllerRight.reinit();
-                            m_timeStamp = System.currentTimeMillis();
+            mapPots();
+            m_manuelPosition = m_leftHeight;
+            switch(m_stateMode)
+            {
+            	case "WaitForCommand":
+            		leftTalon.set(0);
+            		rightTalon.set(0);
+            	    break;
+            	    
+            	case "GoHomeOnly":
+            	    if(goToHome())
+            	    {
+            	        m_stateMode = "WaitForCommand";
+                        piControllerLeft.reinit();
+                        piControllerRight.reinit();
+            	    }
+            	    break;
+            	    
+            	case "GoHome":
+            	    if(goToHome())
+            	    {
+            	        m_stateMode = "WaitHome";
+            	        piControllerLeft.reinit();
+                        piControllerRight.reinit();
+            	    }
+            	    break;
+            	    
+            	case "WaitHome":
+            	    if(goToHeight(m_waitLiftPosition))
+                    {
+                        m_stateMode = "WaitForCommand";
+                    }
+            	    break;
+            	    
+            	case "DropFullTotes":
+            	    switch(m_dropFullState)
+            	    {
+            	        case"WaitForCommand":
+            	            
+            	            break;
+            	            
+            	        case "GoToLiftPosition":
+                            if(goToHome())
+                            {
+                                m_dropFullState = "GoToFullPosition";
+                                piControllerLeft.reinit();
+                                piControllerRight.reinit();
+                            }
+                            break;
+            	            
+            	        case "GoToFullPosition":
+            	            //System.out.println("Left Height: "+ m_leftHeight + "             Right Height: "+m_rightHeight);
+                            if(goToHeight(0.30))
+                            {
+                                m_dropFullState = "WaitForCommand";
+                                piControllerLeft.reinit();
+                                piControllerRight.reinit();
+                                m_timeStamp = System.currentTimeMillis();
+                                leftTalon.set(0);
+                                rightTalon.set(0);
+                            }
+                            break;
+                            
+            	        case "GoToPointFour":
+            	            if(goToHeight(0.4))
+                            {
+                                m_dropFullState = "OpenDogs";
+                                piControllerLeft.reinit();
+                                piControllerRight.reinit();
+                                m_timeStamp = System.currentTimeMillis();
+                            }
+            	            break;
+            	            
+            	        case "OpenDogs":
+                            openDogs();
                             leftTalon.set(0);
                             rightTalon.set(0);
-                        }
-                        break;
-                        
-        	        case "GoToPointFour":
-        	            if(goToHeight(0.4))
-                        {
-                            m_dropFullState = "OpenDogs";
-                            piControllerLeft.reinit();
-                            piControllerRight.reinit();
+                            if(System.currentTimeMillis() - m_timeStamp > 500)
+                            {
+                                m_dropFullState = "GoToAlmostHome";
+                                if(m_goAllTheWayDownOnDrop)
+                                {
+                                    m_dropFullState = "GoToLastLiftPosition";
+                                }
+                            }
+                            break;
+                            
+            	        case "GoToAlmostHome":
+                            if(goToHeight(0.25))
+                            {
+                                m_dropFullState = "WaitForCommand";
+                                totesDropped = true;
+                                m_stateMode = "WaitForCommand";
+                            }
+                            break;
+                            
+            	        case "GoToLastLiftPosition":
+                            if(goToHome())
+                            {
+                                m_dropFullState = "WaitForCommand";
+                                totesDropped = true;
+                                m_stateMode = "WaitForCommand";
+                            }
+                            break;
+                            
+                        default:
+                            break;
+            	    }
+            	    break;
+            		
+                case "AddTote":
+                    switch(m_addSubstate)
+                    {
+                        case "WaitForCommand":
+                            leftTalon.set(0);
+                            rightTalon.set(0);
+                            break;
+    
+                        case "GoToLiftPosition":
+                            if(goToHome())
+                            {
+                                m_addSubstate = "GoToOpenDogsPosition";
+                                piControllerLeft.reinit();
+                                piControllerRight.reinit();
+                            }
+                            break;
+    
+                        case "GoToOpenDogsPosition":
+                            if(goToHeight(m_openDogsLiftPosition))
+                            {
+                                m_addSubstate = "OpenDogs";
+                                piControllerLeft.reinit();
+                                piControllerRight.reinit();
+                            }
                             m_timeStamp = System.currentTimeMillis();
-                        }
-        	            break;
-        	            
-        	        case "OpenDogs":
-                        openDogs();
-                        leftTalon.set(0);
-                        rightTalon.set(0);
-                        if(System.currentTimeMillis() - m_timeStamp > 500)
-                        {
-                            m_dropFullState = "GoToAlmostHome";
-                        }
-                        break;
-                        
-        	        case "GoToAlmostHome":
-                        if(goToHeight(0.25))
-                        {
-                            m_dropSubstate = "GoToLastLiftPosition";
-                            totesDropped = true;
-                        }
-                        break;
-                        
-        	        case "GoToLastLiftPosition":
-                        if(goToHome())
-                        {
-                            m_dropFullState = "WaitForCommand";
-                        }
-                        break;
-                        
-                    default:
-                        break;
-        	    }
-        	    break;
-        		
-            case "AddTote":
-                switch(m_addSubstate)
-                {
-                    case "WaitForCommand":
-                        leftTalon.set(0);
-                        rightTalon.set(0);
-                        break;
-
-                    case "GoToLiftPosition":
-                        if(goToHome())
-                        {
-                            m_addSubstate = "GoToOpenDogsPosition";
-                            piControllerLeft.reinit();
-                            piControllerRight.reinit();
-                        }
-                        break;
-
-                    case "GoToOpenDogsPosition":
-                        if(goToHeight(m_openDogsLiftPosition))
-                        {
-                            m_addSubstate = "OpenDogs";
-                            piControllerLeft.reinit();
-                            piControllerRight.reinit();
-                        }
-                        m_timeStamp = System.currentTimeMillis();
-                        break;
-
-                    case "OpenDogs":
-                        openDogs();
-                        leftTalon.set(0);
-                        rightTalon.set(0);
-                        if(System.currentTimeMillis() - m_timeStamp > 250)
-                        {
-                            m_addSubstate = "GoToCloseDogsPosition";
-                        }
-                        break;
-
-                    case "GoToCloseDogsPosition":
-                        if(goToHeight(m_closeDogsLiftPosition))
-                        {
-                            m_addSubstate = "CloseDogs";
-                            piControllerLeft.reinit();
-                            piControllerRight.reinit();
-                            m_timeStamp = System.currentTimeMillis();
-                        }
-                        break;
-
-                    case "CloseDogs":
-                        closeDogs();
-                        leftTalon.set(0);
-                        rightTalon.set(0);
-                        if(System.currentTimeMillis() - m_timeStamp > 500)
-                        {
-                            m_addSubstate = "GoToWaitLiftPosition";
-                            m_timeStamp = System.currentTimeMillis();
-                            piControllerLeft.setThrottle(0.25);
-                            piControllerRight.setThrottle(0.25);
-                        }
-                        break;
-
-                    case "GoToWaitLiftPosition":
-                        if(System.currentTimeMillis()- m_timeStamp > 1000)
-                        {
-                            piControllerLeft.setThrottle(1.0);
-                            piControllerRight.setThrottle(1.0);
-                        }
-                        if(goToHeight(m_waitLiftPosition))
-                        {
-                            m_addSubstate = "WaitForCommand";
-                        }
-                        break;
-
-                    default:
-                        break;
-                }
-                break;
-
-            case "DropTotes":
-                switch(m_dropSubstate)
-                {
-                    case "WaitForCommand":
-                        leftTalon.set(0);
-                        rightTalon.set(0);
-                        break;
-
-                    case "GoToOpenDogsPosition":
-                        if(goToHeight(m_closeDogsLiftPosition))
-                        {
-                            m_dropSubstate = "OpenDogs";
-                            m_timeStamp = System.currentTimeMillis();
-                            piControllerLeft.reinit();
-                            piControllerRight.reinit();
-                        }
-                        break;
-
-                    case "OpenDogs":
-                        openDogs();
-                        if(System.currentTimeMillis() - m_timeStamp > 500)
-                        {
-                            m_dropSubstate = "GoToAlmostHome";
-                        }
-                        break;
-                        
-                    case "GoToAlmostHome":
-                        if(goToHeight(0.25))
-                        {
-                            m_dropSubstate = "GoToLiftPosition";
-                        }
-                        break;
-
-                    case "GoToLiftPosition":
-                        if(goToHome())
-                        {
-                            m_dropSubstate = "WaitForCommand";
-                            totesDropped = true;
-                        }
-                        break;
-
-                    default:
-                        break;
-                }
-                break;
-
-            default:
-                break;
+                            break;
+    
+                        case "OpenDogs":
+                            openDogs();
+                            leftTalon.set(0);
+                            rightTalon.set(0);
+                            if(System.currentTimeMillis() - m_timeStamp > 250)
+                            {
+                                m_addSubstate = "GoToCloseDogsPosition";
+                            }
+                            break;
+    
+                        case "GoToCloseDogsPosition":
+                            if(goToHeight(m_closeDogsLiftPosition))
+                            {
+                                m_addSubstate = "CloseDogs";
+                                piControllerLeft.reinit();
+                                piControllerRight.reinit();
+                                m_timeStamp = System.currentTimeMillis();
+                            }
+                            break;
+    
+                        case "CloseDogs":
+                            closeDogs();
+                            leftTalon.set(0);
+                            rightTalon.set(0);
+                            if(System.currentTimeMillis() - m_timeStamp > 500)
+                            {
+                                m_addSubstate = "GoToWaitLiftPosition";
+                                m_timeStamp = System.currentTimeMillis();
+                                piControllerLeft.setThrottle(0.25);
+                                piControllerRight.setThrottle(0.25);
+                            }
+                            break;
+    
+                        case "GoToWaitLiftPosition":
+                            if(System.currentTimeMillis()- m_timeStamp > 1000)
+                            {
+                                piControllerLeft.setThrottle(1.0);
+                                piControllerRight.setThrottle(1.0);
+                            }
+                            if(goToHeight(m_waitLiftPosition))
+                            {
+                                m_addSubstate = "WaitForCommand";
+                            }
+                            break;
+    
+                        default:
+                            break;
+                    }
+                    break;
+    
+                case "DropTotes":
+                    switch(m_dropSubstate)
+                    {
+                        case "WaitForCommand":
+                            leftTalon.set(0);
+                            rightTalon.set(0);
+                            break;
+    
+                        case "GoToOpenDogsPosition":
+                            if(goToHeight(m_closeDogsLiftPosition))
+                            {
+                                m_dropSubstate = "OpenDogs";
+                                m_timeStamp = System.currentTimeMillis();
+                                piControllerLeft.reinit();
+                                piControllerRight.reinit();
+                            }
+                            break;
+    
+                        case "OpenDogs":
+                            openDogs();
+                            if(System.currentTimeMillis() - m_timeStamp > 500)
+                            {
+                                m_dropSubstate = "GoToAlmostHome";
+                                if(m_goAllTheWayDownOnDrop)
+                                {
+                                    m_dropSubstate = "GoToLastLiftPosition";
+                                }
+                            }
+                            break;
+                            
+                        case "GoToAlmostHome":
+                            if(goToHeight(0.25))
+                            {
+                                m_dropSubstate = "WaitForCommand";
+                                totesDropped = true;
+                            }
+                            break;
+    
+                        case "GoToLiftPosition":
+                            if(goToHome())
+                            {
+                                m_dropSubstate = "WaitForCommand";
+                                totesDropped = true;
+                            }
+                            break;
+    
+                        default:
+                            break;
+                    }
+                    break;
+    
+                default:
+                    break;
+            }
+        }
+        else
+        {
+            System.out.println("pos = "+m_manuelPosition);
+            if(m_manuelPosition > 0.6)
+            {
+                m_manuelPosition = 0.6;
+            }
+            goToHeight(m_manuelPosition);
         }
     }
 }

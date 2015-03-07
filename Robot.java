@@ -87,6 +87,8 @@ public class Robot extends IterativeRobot
 
     int m_topHatValue;
     int m_previousTopHatValue;
+    double m_previousJoystickOneYValue;
+    double m_joystickOneYValue;
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
@@ -189,6 +191,7 @@ public class Robot extends IterativeRobot
                 m_lifterCloseDogsLiftPosition, m_homeOffset, infraredSensor);
         
         autonomous = new Autonomous(chassis);
+        m_joystickOneYValue = 0;
     }
 
     public void setSubsystemConstants()
@@ -340,6 +343,7 @@ public class Robot extends IterativeRobot
     	
           if(joystickZero.getRawButton(1))
           {
+              toteLifter.m_goAllTheWayDownOnDrop = true;
               toteLifter.dropTotes();
           }
           if(joystickZero.getRawButton(2))
@@ -391,16 +395,23 @@ public class Robot extends IterativeRobot
         {
             toteLifter.goToHomeOnly();
         }
+        if(joystickOne.getRawButton(12))
+        {
+            toteLifter.m_goAllTheWayDownOnDrop = false;
+            toteLifter.dropTotes();
+        }
+        
         //System.out.println(0.2680762026*Math.pow(infraredSensor.getAverageVoltage(),
         //        -1.130124285));
         ///System.out.println(toteLifter.leftTalon.getOutputCurrent());
         //System.out.println(toteLifter.leftTalon.getOutputCurrent());
         //System.out.println(grabber.horizontalTalon.getOutputCurrent());
         //System.out.println(grabber.m_horizontalPotDistance);
-        toteLifter.idle();
         //System.out.println("Tote = "+ grabber.m_toteHorizontalState );
         //System.out.println("                                     Can = "+grabber.m_canHorizontalState);
         //System.out.println("                                                                         Vertical = "+grabber.m_verticalState);
+        //VIPE SQUAD 4EVR
+        toteLifter.m_manuelControl = false;
         if(m_topHatValue == -1)
         {
             if(m_previousTopHatValue != -1)
@@ -409,12 +420,31 @@ public class Robot extends IterativeRobot
             }
             else
             {
-                if(Math.abs(joystickOne.getY()) >= 0.2)
+                m_previousJoystickOneYValue = m_joystickOneYValue;
+                m_joystickOneYValue = joystickOne.getY();
+                
+                if(Math.abs(m_joystickOneYValue) >= 0.2)
                 {
-                    grabber.horizontalTalon.set(joystickOne.getY());
+                    if(joystickOne.getThrottle() >= 0)
+                    {
+                        toteLifter.disable();
+                        toteLifter.m_manuelControl = true;
+                        toteLifter.m_manuelPosition += m_joystickOneYValue/100;
+                        grabber.horizontalTalon.set(0);
+                    }
+                    else
+                    {
+                        grabber.horizontalTalon.set(m_joystickOneYValue);
+                        toteLifter.leftTalon.set(0);
+                        toteLifter.rightTalon.set(0);
+                    }
                 }
                 else
                 {
+                    if(Math.abs(m_previousJoystickOneYValue) >= 0.2)
+                    {
+                        grabber.horizontalTalon.set(0);
+                    }
                     grabber.idle();
                 }
             }
@@ -428,6 +458,8 @@ public class Robot extends IterativeRobot
         	grabber.verticalTalon.set(1*Math.sin((m_topHatValue+90)*(Math.PI/180.0)));
         	grabber.horizontalTalon.set(0.55*Math.cos((m_topHatValue+270)*(Math.PI/180.0)));
         }
+        
+        toteLifter.idle();
         
     	double x = joystickZero.getX();
 		double y = joystickZero.getY();
@@ -519,6 +551,6 @@ public class Robot extends IterativeRobot
             rightLifterServo.setAngle(10);
         }
         
-        System.out.println("Left side: "+lifterLeftPot.getAverageVoltage());
+        //System.out.println("Throttle: "+joystickZero.getThrottle());
     }
 }
