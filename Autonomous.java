@@ -68,7 +68,7 @@ public class Autonomous
         switch(m_autoState)
         {
             case (AutoState.driveOffRamp):
-                if(System.currentTimeMillis() - m_timeStamp < 375)
+                if(System.currentTimeMillis() - m_timeStamp < 500)
                 {
                     chassis.setJoystickData(0, -0.5, 0);
                 }

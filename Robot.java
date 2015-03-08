@@ -400,7 +400,7 @@ public class Robot extends IterativeRobot
             toteLifter.m_goAllTheWayDownOnDrop = false;
             toteLifter.dropTotes();
         }
-        System.out.println("grabber arm");
+        //System.out.println("grabber arm");
         //System.out.println(0.2680762026*Math.pow(infraredSensor.getAverageVoltage(),
         //        -1.130124285));
         ///System.out.println(toteLifter.leftTalon.getOutputCurrent());

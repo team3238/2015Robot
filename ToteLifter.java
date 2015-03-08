@@ -135,7 +135,7 @@ public class ToteLifter
         m_leftHeight =  0.121 * leftPot.getAverageVoltage() + 
                 m_leftPotYIntercept - 0.007;
         m_rightHeight = -0.121 * rightPot.getAverageVoltage() + 
-                m_rightPotYIntercept - 0.007;
+                m_rightPotYIntercept - 0.017;
     }
     
     void mapDistance()
@@ -547,12 +547,12 @@ public class ToteLifter
                             System.out.println("opening the dogs, waiting for time");
                             if(System.currentTimeMillis() - m_timeStamp > 500)
                             {
-                                if(m_goAllTheWayDownOnDrop)
+                                //if(m_goAllTheWayDownOnDrop)
                                 {
-                                    m_dropSubstate = "GoToLiftPosition";
-                                    System.out.println("going all the way down");
+                                    //m_dropSubstate = "GoToLiftPosition";
+                                    //System.out.println("going all the way down");
                                 }
-                                else
+                                //else
                                 {
                                     m_dropSubstate = "GoToAlmostHome";
                                     System.out.println("going to almost home");
@@ -565,9 +565,18 @@ public class ToteLifter
                             System.out.println("going almost all the way down now");
                             if(goToHeight(0.25))
                             {
-                                m_dropSubstate = "WaitForCommand";
-                                totesDropped = true;
-                                System.out.println("DONE");
+                                if(m_goAllTheWayDownOnDrop)
+                                {
+                                    m_dropSubstate = "GoToLiftPosition";
+                                }
+                                else
+                                {
+                                    m_dropSubstate = "WaitForCommand";
+                                    totesDropped = true;
+                                    System.out.println("DONE");
+                                }
+                                //totesDropped = true;
+                                System.out.println("got to wiered position");
                             }
                             break;
     
