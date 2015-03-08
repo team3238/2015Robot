@@ -333,32 +333,30 @@ public class Robot extends IterativeRobot
      */
     public void teleopPeriodic()
     {
-//        toteLifter.mapPots();
-          toteLifter.mapDistance();
-          //System.out.println(toteLifter.m_infraredDistance);
-//        System.out.print("Left: " + toteLifter.m_leftHeight);
-//        System.out.println(" Right: " + toteLifter.m_rightHeight);
-          m_previousTopHatValue = m_topHatValue;
-    	  m_topHatValue = joystickZero.getPOV();
-    	
-          if(joystickZero.getRawButton(1))
-          {
-              toteLifter.m_goAllTheWayDownOnDrop = true;
-              toteLifter.dropTotes();
-          }
-          if(joystickZero.getRawButton(2))
-          {
-              toteLifter.addTote();
-          }
-          
-          if(joystickZero.getRawButton(7))
-          {
-              toteLifter.closeDogs();
-          }
-          if(joystickZero.getRawButton(8))
-          {
-              toteLifter.openDogs();
-          }
+        //      toteLifter.mapPots();
+        toteLifter.mapDistance();
+        //System.out.println(toteLifter.m_infraredDistance);
+        //      System.out.print("Left: " + toteLifter.m_leftHeight);
+        //      System.out.println(" Right: " + toteLifter.m_rightHeight);
+        m_previousTopHatValue = m_topHatValue;
+        m_topHatValue = joystickZero.getPOV();
+        if(joystickZero.getRawButton(1))
+        {
+            toteLifter.m_goAllTheWayDownOnDrop = true;
+            toteLifter.dropTotes();
+        }
+        if(joystickZero.getRawButton(2))
+        {
+            toteLifter.addTote();
+        }
+        if(joystickZero.getRawButton(7))
+        {
+            toteLifter.closeDogs();
+        }
+        if(joystickZero.getRawButton(8))
+        {
+            toteLifter.openDogs();
+        }
         if(joystickZero.getRawButton(5))
         {
             toteLifter.dropFullTotes();
@@ -377,7 +375,9 @@ public class Robot extends IterativeRobot
         }
         if(joystickZero.getRawButton(6))
         {
-           grabber.grabStepCan();
+           //grabber.grabStepCan();
+            grabber.grabStepCanAuto();
+            grabber.m_stepCanDirection = -1.0;
         }
         if(joystickZero.getRawButton(10))
         {
@@ -400,7 +400,7 @@ public class Robot extends IterativeRobot
             toteLifter.m_goAllTheWayDownOnDrop = false;
             toteLifter.dropTotes();
         }
-        
+        System.out.println("grabber arm");
         //System.out.println(0.2680762026*Math.pow(infraredSensor.getAverageVoltage(),
         //        -1.130124285));
         ///System.out.println(toteLifter.leftTalon.getOutputCurrent());
@@ -456,7 +456,7 @@ public class Robot extends IterativeRobot
         	//grabber.verticalTalon.set(0);
         	//System.out.println(m_topHatValue);
         	grabber.verticalTalon.set(1*Math.sin((m_topHatValue+90)*(Math.PI/180.0)));
-        	grabber.horizontalTalon.set(0.55*Math.cos((m_topHatValue+270)*(Math.PI/180.0)));
+        	grabber.horizontalTalon.set(1*Math.cos((m_topHatValue+270)*(Math.PI/180.0)));
         }
         
         toteLifter.idle();

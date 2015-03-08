@@ -61,6 +61,8 @@ public class Grabber
     double m_horizontalYIntercept;
     double m_verticalYIntercept;
     
+    double m_stepCanDirection;
+    
     long m_timestamp;
     // Switch state variables
     String m_toteHorizontalState;
@@ -126,6 +128,7 @@ public class Grabber
         m_retractedLocation = retractedLocation;
         irSensor = infraredSensor;
         m_horizontalPotDistance = 0;
+        m_stepCanDirection = 1.0;
     }
     
     void inputConstants(double verticalPConstant, double verticalIConstant,
@@ -277,6 +280,7 @@ public class Grabber
         m_toteHorizontalState = "goHome";
         m_verticalState = "goHome";
         horizontalPI.reinit();
+        m_timestamp = System.currentTimeMillis();
     }
     
     void goToAvoidTotePosition()
@@ -345,6 +349,7 @@ public class Grabber
                 m_doneCollecting = false;
                 m_horizontalExtended = false;
                 m_canAutoHorizontalState = "finishExtending";
+                m_timestamp = System.currentTimeMillis();
                 System.out.println("TRYING TO EXTEND!!!!!!!");
 //                System.out.println(Math.abs(m_canHorizontalSetpoint 
 //                        - m_pauseDistanceFromObject 
@@ -353,8 +358,8 @@ public class Grabber
                         - m_horizontalPotDistance) > m_horizontalThreshold)
                 {
                     //horizontalPI.inputConstants(9999, 1);
-                    horizontalTalon.set(horizontalPI.getMotorValue(
-                            m_canHorizontalSetpoint, m_horizontalPotDistance));
+                    //horizontalTalon.set(m_stepCanDirection*horizontalPI.getMotorValue(
+                    //        m_canHorizontalSetpoint, m_horizontalPotDistance));
                 }
                 else
                 {
@@ -365,24 +370,33 @@ public class Grabber
 //                    horizontalPI.inputConstants
 //                            (m_gentleHorizontalP, m_gentleHorizontalI);
                 }
+                //horizontalPI.reinit();
                 break;
                 
             case "finishExtending":
                 //Math.abs(
                 System.out.println("Finish Extending!!!!!!!");
-                if((horizontalTalon.getOutputCurrent() < 25))
-                //ifMath.abs(m_previousHorizontalPotDistance - m_horizontalPotDistance) < 0.)
+                System.out.println(horizontalTalon.getOutputCurrent());
+                if(System.currentTimeMillis() - m_timestamp < 250)
                 {
-                    horizontalTalon.set(horizontalPI.getMotorValue(
-                            m_canHorizontalSetpoint, m_horizontalPotDistance));
-                    //horizontalTalon.set(-0.65);
-                    System.out.println("Trying to extend outward");
+                    horizontalTalon.set(-1.0);
                 }
                 else
                 {
-                    m_canAutoHorizontalState = "waitForHook";
-                    m_horizontalExtended = true;
-                    horizontalTalon.set(0);
+                    if((horizontalTalon.getOutputCurrent() < 25))
+                    //ifMath.abs(m_previousHorizontalPotDistance - m_horizontalPotDistance) < 0.)
+                    {
+                       // horizontalTalon.set(m_stepCanDirection*horizontalPI.getMotorValue(
+                         //       m_canHorizontalSetpoint, m_horizontalPotDistance));
+                        horizontalTalon.set(-1.0);
+                        System.out.println("Trying to extend outward, horizontal current is" + horizontalTalon.getOutputCurrent());
+                    }
+                    else
+                    {
+                        m_canAutoHorizontalState = "waitForHook";
+                        m_horizontalExtended = true;
+                        horizontalTalon.set(0);
+                    }
                 }
                 break;
              
@@ -401,21 +415,25 @@ public class Grabber
                 break;
 
             case "retracting":
-                if((Math.abs(0.5 - m_horizontalPotDistance) 
+                System.out.println("in retracting--------------------------");
+                if((Math.abs(0.3 - m_horizontalPotDistance) ////////////////////////////////////////////////////////////////////////////////////////////////
                         > m_horizontalThreshold) && m_horizontalPotDistance
                         > m_slowDownRetractThreshold)
                 {
                     horizontalPI.setThrottle(1.0);
                     horizontalTalon.set(-horizontalPI.getMotorValue(
-                            0.5, m_horizontalPotDistance));
+                            0.3, m_horizontalPotDistance));
+                    System.out.println("in first if statment");
                 }
                 else 
                 {
-                    if(horizontalTalon.getOutputCurrent() < 18)
+                    System.out.println("Talon output current = "+horizontalTalon.getOutputCurrent());
+                    if(horizontalTalon.getOutputCurrent() < 1)
                     {
                         horizontalPI.setThrottle(0.8);
                         horizontalTalon.set(-horizontalPI.getMotorValue(
-                                0.5, m_horizontalPotDistance));
+                                0.3, m_horizontalPotDistance));
+                        System.out.println("in second if statment");
                     }
                     else
                     {
@@ -423,6 +441,7 @@ public class Grabber
                         m_verticalState = "lowerABit";
                         horizontalTalon.set(0);
                         m_doneCollecting = true;
+                        System.out.println("in last else statment");
                     }
                 }
                 break;
@@ -446,23 +465,32 @@ public class Grabber
                 break;
                 
             case "goHome":
-                if(horizontalTalon.getOutputCurrent() < 17)
+                if( System.currentTimeMillis() - m_timestamp <= 200)
                 {
-                    horizontalTalon.set(0.65);
+                    horizontalTalon.set(0.85);
                 }
                 else
                 {
-                    m_toteHorizontalState = "waitForCommand";
-                    m_horizontalFoundHome = true;
-                    horizontalTalon.set(0);
-                    verticalPI.reinit();
+                    if(horizontalTalon.getOutputCurrent() < 15)
+                    {
+                        horizontalTalon.set(0.85);
+                        //System.out.println(horizontalTalon.getOutputCurrent());
+                        
+                    }
+                    else
+                    {
+                        m_toteHorizontalState = "waitForCommand";
+                        m_horizontalFoundHome = true;
+                        horizontalTalon.set(0);
+                        verticalPI.reinit();
+                    }
                 }
                 break;
                 
             case "extendToToteSlowdown":
                 m_doneCollecting = false;
                 m_horizontalExtended = false;
-                if(Math.abs(m_toteHorizontalSetpoint - m_pauseDistanceFromObject 
+                if(Math.abs((m_toteHorizontalSetpoint - m_pauseDistanceFromObject) - 0.04 
                         - m_horizontalPotDistance) > m_horizontalThreshold)
                 {
                     horizontalPI.setThrottle(0.75);
@@ -477,7 +505,7 @@ public class Grabber
                 break;
                 
             case "finishExtendingTote":
-                if(Math.abs(m_toteHorizontalSetpoint - m_horizontalPotDistance) 
+                if(Math.abs(m_toteHorizontalSetpoint - m_horizontalPotDistance - 0.04) 
                         > m_horizontalThreshold)
                 {
                     horizontalPI.setThrottle(0.5);

@@ -538,34 +538,46 @@ public class ToteLifter
                                 m_timeStamp = System.currentTimeMillis();
                                 piControllerLeft.reinit();
                                 piControllerRight.reinit();
+                                System.out.println(" = " + m_dropSubstate);
                             }
                             break;
     
                         case "OpenDogs":
                             openDogs();
+                            System.out.println("opening the dogs, waiting for time");
                             if(System.currentTimeMillis() - m_timeStamp > 500)
                             {
-                                m_dropSubstate = "GoToAlmostHome";
                                 if(m_goAllTheWayDownOnDrop)
                                 {
-                                    m_dropSubstate = "GoToLastLiftPosition";
+                                    m_dropSubstate = "GoToLiftPosition";
+                                    System.out.println("going all the way down");
                                 }
+                                else
+                                {
+                                    m_dropSubstate = "GoToAlmostHome";
+                                    System.out.println("going to almost home");
+                                }
+                                System.out.println("HAVE OPENED THE DOGS (going to next state now)//////////////////////////////////////////");
                             }
                             break;
                             
                         case "GoToAlmostHome":
+                            System.out.println("going almost all the way down now");
                             if(goToHeight(0.25))
                             {
                                 m_dropSubstate = "WaitForCommand";
                                 totesDropped = true;
+                                System.out.println("DONE");
                             }
                             break;
     
                         case "GoToLiftPosition":
+                            System.out.println("going all the way down now");
                             if(goToHome())
                             {
                                 m_dropSubstate = "WaitForCommand";
                                 totesDropped = true;
+                                System.out.println("DONE");
                             }
                             break;
     

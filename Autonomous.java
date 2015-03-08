@@ -81,6 +81,7 @@ public class Autonomous
                 
             case (AutoState.pickUpCan):
                 grabber.grabStepCanAuto();
+                grabber.m_stepCanDirection = 1.0;
                 m_autoState = AutoState.waitToTranslate;
                 break;
                 
@@ -95,7 +96,7 @@ public class Autonomous
                 break;
                 
             case (AutoState.goBack):
-                chassis.setJoystickData(0, 0.5, 0);
+                //chassis.setJoystickData(0, 0.5, 0);
                 if(System.currentTimeMillis() - m_timeStamp > 250)
                 {
                     m_autoState = AutoState.translateRight;
@@ -108,7 +109,7 @@ public class Autonomous
                 double adjustedRotation = GyroDrive.getAdjustedRotationValue(
                         0.9, 0.1, 0, gyroPConstant, gyroIConstant, 
                         spinThreshold, gyroValue - 2.37);
-                chassis.setJoystickData(0.9, 0.1, adjustedRotation);
+                //chassis.setJoystickData(0.9, 0.1, adjustedRotation);
                 if(System.currentTimeMillis() - m_timeStamp > 1000)
                 {
                     m_autoState = AutoState.done;
