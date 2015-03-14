@@ -1,6 +1,7 @@
 package org.usfirst.frc.team3238.robot;
 
 import java.util.ArrayList;
+
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.BuiltInAccelerometer;
 import edu.wpi.first.wpilibj.CANTalon;
@@ -511,6 +512,7 @@ public class Robot extends IterativeRobot
 			toteLifter.goToHeight(toteLifter.m_waitLiftPosition);
 		}
 		toteLifter.idle();
+		System.out.println("Left height:" + toteLifter.m_leftHeight + "           Right height:" + toteLifter.m_leftHeight + "            Difference = " + (toteLifter.m_leftHeight-toteLifter.m_rightHeight));
     }
     
     public void disabledPeriodic()
@@ -558,7 +560,7 @@ public class Robot extends IterativeRobot
             leftLifterServo.setAngle(170);
             rightLifterServo.setAngle(10);
         }
-        
+        //System.out.println(toteLifter.leftPot.getAverageVoltage());
         //System.out.println("Throttle: "+joystickZero.getThrottle());
     }
 }

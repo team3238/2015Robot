@@ -124,18 +124,18 @@ public class ToteLifter
     
     void zeroPots()
     {
-        m_leftPotYIntercept = m_homeHeight - (0.121 * 
+        m_leftPotYIntercept = m_homeHeight - (0.165 * 
                 leftPot.getAverageVoltage());
-        m_rightPotYIntercept = m_homeHeight - (-0.121 * 
+        m_rightPotYIntercept = m_homeHeight - (-0.165 * 
                 rightPot.getAverageVoltage());
     }
     
     void mapPots()
     {
-        m_leftHeight =  0.121 * leftPot.getAverageVoltage() + 
-                m_leftPotYIntercept - 0.007;
-        m_rightHeight = -0.121 * rightPot.getAverageVoltage() + 
-                m_rightPotYIntercept - 0.017;
+        m_leftHeight =  0.165 * leftPot.getAverageVoltage() + 
+                m_leftPotYIntercept /*- 0.007*/;
+        m_rightHeight = -0.165 * rightPot.getAverageVoltage() + 
+                m_rightPotYIntercept /*- 0.017*/;
     }
     
     void mapDistance()
@@ -182,7 +182,7 @@ public class ToteLifter
         boolean positionReached = false;
         double adjust = 0.0;
         mapPots();
-        adjust = (m_leftHeight-m_rightHeight)*10;
+        adjust = (m_leftHeight-m_rightHeight)*15;
         
         if(Math.abs(setpoint - m_leftHeight) > m_threshold)
         {
@@ -464,11 +464,15 @@ public class ToteLifter
                             break;
     
                         case "GoToOpenDogsPosition":
-                            if(goToHeight(m_openDogsLiftPosition))
+                            if(goToHeight(m_closeDogsLiftPosition))
                             {
-                                m_addSubstate = "OpenDogs";
+                                m_addSubstate = "CloseDogs";
                                 piControllerLeft.reinit();
                                 piControllerRight.reinit();
+                            }
+                            if(m_leftHeight > m_openDogsLiftPosition)
+                            {
+                                openDogs();
                             }
                             m_timeStamp = System.currentTimeMillis();
                             break;
@@ -477,7 +481,7 @@ public class ToteLifter
                             openDogs();
                             leftTalon.set(0);
                             rightTalon.set(0);
-                            if(System.currentTimeMillis() - m_timeStamp > 250)
+                            if(System.currentTimeMillis() - m_timeStamp > 0)//250)
                             {
                                 m_addSubstate = "GoToCloseDogsPosition";
                             }
@@ -519,6 +523,7 @@ public class ToteLifter
                             break;
     
                         default:
+                            System.out.println("add substate is in its default state!!!!! BibleThump");
                             break;
                     }
                     break;
