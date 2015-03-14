@@ -1,11 +1,11 @@
 package org.usfirst.frc.team3238.robot;
 
 import java.util.ArrayList;
-
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.BuiltInAccelerometer;
 import edu.wpi.first.wpilibj.CANTalon;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Servo;
@@ -28,6 +28,7 @@ public class Robot extends IterativeRobot
     CANTalon grabberVerticalTalon, grabberHorizontalTalon;
     CANTalon leftLifterTalon, rightLifterTalon;
     DigitalInput reflectSensorFront, reflectSensorRear;
+    DriverStation driverStation;
     AnalogInput gyroSensor;
     BuiltInAccelerometer accelerometer;
     AnalogInput infraredSensor, sonarSensor;
@@ -89,6 +90,9 @@ public class Robot extends IterativeRobot
     int m_previousTopHatValue;
     double m_previousJoystickOneYValue;
     double m_joystickOneYValue;
+    
+    long teleopStartTimestamp;
+    
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
@@ -131,6 +135,8 @@ public class Robot extends IterativeRobot
 		// Driver Station Inputs
 		final int JOYSTICKPORT = 0;
     				
+		driverStation = DriverStation.getInstance();
+		
 		joystickZero = new Joystick(JOYSTICKPORT);
 		joystickOne = new Joystick(1);
 		joystickTwo = new Joystick(2);
@@ -288,7 +294,6 @@ public class Robot extends IterativeRobot
         grabber.reset();
         autonomous.init(toteLifter);
         grabber.zeroPots();
-        
     }
 
     /**
@@ -326,6 +331,7 @@ public class Robot extends IterativeRobot
         System.out.println(grabber.m_horizontalI);
         toteLifter.disable();
         GyroDrive.reinit();
+        teleopStartTimestamp = System.currentTimeMillis();
     }
 
     /**
@@ -410,7 +416,6 @@ public class Robot extends IterativeRobot
         //System.out.println("Tote = "+ grabber.m_toteHorizontalState );
         //System.out.println("                                     Can = "+grabber.m_canHorizontalState);
         //System.out.println("                                                                         Vertical = "+grabber.m_verticalState);
-        //VIPE SQUAD 4EVR
         toteLifter.m_manuelControl = false;
         if(m_topHatValue == -1)
         {
@@ -459,12 +464,9 @@ public class Robot extends IterativeRobot
         	grabber.horizontalTalon.set(1*Math.cos((m_topHatValue+270)*(Math.PI/180.0)));
         }
         
-        toteLifter.idle();
-        
     	double x = joystickZero.getX();
 		double y = joystickZero.getY();
 		double twist = joystickZero.getTwist();
-		
 		
 		double deadzone = 0.15;
 		
@@ -503,6 +505,12 @@ public class Robot extends IterativeRobot
 		chassis.setJoystickData(x * throttleMapping, y * throttleMapping, 
 		        adjustedRotation);
 		chassis.idle();
+		if(driverStation.isFMSAttached() && 
+				(System.currentTimeMillis() - teleopStartTimestamp > 133000))
+		{
+			toteLifter.goToHeight(toteLifter.m_waitLiftPosition);
+		}
+		toteLifter.idle();
     }
     
     public void disabledPeriodic()
