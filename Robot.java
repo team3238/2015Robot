@@ -332,6 +332,7 @@ public class Robot extends IterativeRobot
         System.out.println(grabber.m_horizontalI);
         toteLifter.disable();
         GyroDrive.reinit();
+        grabber.zeroPots();
         teleopStartTimestamp = System.currentTimeMillis();
     }
 
@@ -511,8 +512,12 @@ public class Robot extends IterativeRobot
 		{
 			toteLifter.goToHeight(toteLifter.m_waitLiftPosition);
 		}
-		toteLifter.idle();
-		System.out.println("Left height:" + toteLifter.m_leftHeight + "           Right height:" + toteLifter.m_leftHeight + "            Difference = " + (toteLifter.m_leftHeight-toteLifter.m_rightHeight));
+		else
+		{
+			toteLifter.idle();
+		}
+		System.out.println("right current: " + toteLifter.rightTalon.getOutputCurrent() + "right current: " + toteLifter.rightTalon.getOutputCurrent());
+		//System.out.println("Left height:" + toteLifter.m_leftHeight + "           Right height:" + toteLifter.m_leftHeight + "            Difference = " + (toteLifter.m_leftHeight-toteLifter.m_rightHeight));
     }
     
     public void disabledPeriodic()

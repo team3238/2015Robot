@@ -18,9 +18,9 @@ public class ToteLifter
     PIController piControllerRight;
 
     final int m_leftOpenServoPosition = 0;
-    final int m_leftCloseServoPosition = 170;
+    final int m_leftCloseServoPosition = 160;
     final int m_rightOpenServoPosition = 180;
-    final int m_rightCloseServoPosition = 10;
+    final int m_rightCloseServoPosition = 20;
     
     double m_collectLiftPosition;
     double m_openDogsLiftPosition;
@@ -54,6 +54,8 @@ public class ToteLifter
     
     boolean m_goAllTheWayDownOnDrop;
     
+    boolean m_haveOpenedDogs;
+    
     ToteLifter(CANTalon leftLift, CANTalon rightLift, Servo leftServo, 
             Servo rightServo, AnalogInput potentiometerLeft, 
             AnalogInput potentiometerRight, double leftP, double leftI, 
@@ -85,6 +87,7 @@ public class ToteLifter
         m_manuelControl = false;
         m_manuelPosition = 0.5;
         m_goAllTheWayDownOnDrop = true;
+        m_haveOpenedDogs = false;
     }
 
     void inputConstants(double leftP, double leftI, 
@@ -133,9 +136,9 @@ public class ToteLifter
     void mapPots()
     {
         m_leftHeight =  0.165 * leftPot.getAverageVoltage() + 
-                m_leftPotYIntercept /*- 0.007*/;
+                m_leftPotYIntercept - 0.015;
         m_rightHeight = -0.165 * rightPot.getAverageVoltage() + 
-                m_rightPotYIntercept /*- 0.017*/;
+                m_rightPotYIntercept ;//+ 0.01;
     }
     
     void mapDistance()
@@ -182,7 +185,7 @@ public class ToteLifter
         boolean positionReached = false;
         double adjust = 0.0;
         mapPots();
-        adjust = (m_leftHeight-m_rightHeight)*15;
+        adjust = (m_leftHeight-m_rightHeight)*25;
         
         if(Math.abs(setpoint - m_leftHeight) > m_threshold)
         {
@@ -458,23 +461,30 @@ public class ToteLifter
                             if(goToHome())
                             {
                                 m_addSubstate = "GoToOpenDogsPosition";
+                                m_haveOpenedDogs = false;
                                 piControllerLeft.reinit();
                                 piControllerRight.reinit();
                             }
                             break;
     
                         case "GoToOpenDogsPosition":
-                            if(goToHeight(m_closeDogsLiftPosition))
+                            if(goToHeight(m_closeDogsLiftPosition) || (m_haveOpenedDogs && (rightTalon.getOutputCurrent() > 10 && leftTalon.getOutputCurrent() > 10)))
                             {
-                                m_addSubstate = "CloseDogs";
-                                piControllerLeft.reinit();
-                                piControllerRight.reinit();
+                            	//closeDogs();
+                            	//if(System.currentTimeMillis() - m_timestamp > 250)
+                            	{
+	                                m_addSubstate = "CloseDogs";
+	                                piControllerLeft.reinit();
+	                                piControllerRight.reinit();
+                            	}
                             }
-                            if(m_leftHeight > m_openDogsLiftPosition)
+                            if(m_leftHeight > m_openDogsLiftPosition  || m_rightHeight > m_openDogsLiftPosition )
                             {
                                 openDogs();
+                                m_haveOpenedDogs = true;
                             }
                             m_timeStamp = System.currentTimeMillis();
+                            System.out.println("                                         have opened dogs: "+m_haveOpenedDogs);
                             break;
     
                         case "OpenDogs":
@@ -511,7 +521,7 @@ public class ToteLifter
                             break;
     
                         case "GoToWaitLiftPosition":
-                            if(System.currentTimeMillis()- m_timeStamp > 1000)
+                            if(System.currentTimeMillis()- m_timeStamp > 750)
                             {
                                 piControllerLeft.setThrottle(1.0);
                                 piControllerRight.setThrottle(1.0);

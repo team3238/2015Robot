@@ -117,6 +117,7 @@ public class Chassis
                 mappedTwist = 0.4444*(m_twistValue * m_twistValue);
             }
         }
+        
         /*
          * Inputs the mapped values into the cartesian mecanum drive method of
          * the drivetrain object, which will set the power of the Talons for us

@@ -111,7 +111,7 @@ lifterOpenDogsLiftPosition
 0.4
 
 lifterCloseDogsLiftPosition
-0.63
+0.64
 
 slowDownRetractThreshold
 0.35
