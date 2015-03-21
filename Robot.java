@@ -546,7 +546,7 @@ public class Robot extends IterativeRobot
 		{
 			toteLifter.idle();
 		}
-		System.out.println("right current: " + toteLifter.rightTalon.getOutputCurrent() + "right current: " + toteLifter.rightTalon.getOutputCurrent());
+		//System.out.println("right current: " + toteLifter.rightTalon.getOutputCurrent() + "right current: " + toteLifter.rightTalon.getOutputCurrent());
 		//System.out.println("Left height:" + toteLifter.m_leftHeight + "           Right height:" + toteLifter.m_leftHeight + "            Difference = " + (toteLifter.m_leftHeight-toteLifter.m_rightHeight));
     }
     
@@ -559,9 +559,9 @@ public class Robot extends IterativeRobot
          // System.out.println("Y = " + Double.toString(accelerometer.getY()).substring(0, 7)  + 
           //        "X = " + Double.toString(accelerometer.getX()).substring(0, 7) +
           //        "Z = " + Double.toString(accelerometer.getZ()).substring(0, 7));
-        System.out.println("Y = " + Double.toString(accelerometer.getY()));
-        System.out.println("                   X = " + Double.toString(accelerometer.getX()));
-        System.out.println("                                     Z = " + Double.toString(accelerometer.getZ()));
+        //System.out.println("Y = " + Double.toString(accelerometer.getY()));
+        //System.out.println("                   X = " + Double.toString(accelerometer.getX()));
+        //System.out.println("                                     Z = " + Double.toString(accelerometer.getZ()));
         /*
         if (X < .01)
         {

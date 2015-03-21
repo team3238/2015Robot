@@ -99,6 +99,8 @@ public class Autonomous
                 
                 //REGULAR
                 m_autoState = AutoState.waitToTranslate;
+                
+                
                 break;
                 
             case (AutoState.waitToTranslate):

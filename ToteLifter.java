@@ -43,6 +43,7 @@ public class ToteLifter
     double m_rightPotYIntercept;
     
     long m_timeStamp;
+    long m_backupTimestamp;
     
     boolean m_leftFoundHome;
     boolean m_rightFoundHome;
@@ -55,6 +56,8 @@ public class ToteLifter
     boolean m_goAllTheWayDownOnDrop;
     
     boolean m_haveOpenedDogs;
+    
+    boolean m_useSpecialLiftRightOffset;
     
     ToteLifter(CANTalon leftLift, CANTalon rightLift, Servo leftServo, 
             Servo rightServo, AnalogInput potentiometerLeft, 
@@ -88,6 +91,8 @@ public class ToteLifter
         m_manuelPosition = 0.5;
         m_goAllTheWayDownOnDrop = true;
         m_haveOpenedDogs = false;
+        m_backupTimestamp = 0;
+        m_useSpecialLiftRightOffset = false;
     }
 
     void inputConstants(double leftP, double leftI, 
@@ -138,7 +143,7 @@ public class ToteLifter
         m_leftHeight =  0.165 * leftPot.getAverageVoltage() + 
                 m_leftPotYIntercept - 0.015;
         m_rightHeight = -0.165 * rightPot.getAverageVoltage() + 
-                m_rightPotYIntercept ;//+ 0.01;
+                m_rightPotYIntercept ;//- 0.015;//+ 0.01;
     }
     
     void mapDistance()
@@ -186,6 +191,10 @@ public class ToteLifter
         double leftAdjust = 0.0;
         double rightAdjust = 0.0;
         mapPots();
+        if(m_useSpecialLiftRightOffset)
+        {
+            m_rightHeight-=0.015;
+        }
         double adjust = (m_leftHeight-m_rightHeight)*15;
         
         /*
@@ -540,7 +549,9 @@ public class ToteLifter
                             break;
     
                         case "GoToOpenDogsPosition":
-                            if(goToHeight(m_closeDogsLiftPosition) || (m_haveOpenedDogs && (rightTalon.getOutputCurrent() > 10 && leftTalon.getOutputCurrent() > 10)))
+                            m_useSpecialLiftRightOffset = true;
+                            if(goToHeight(m_closeDogsLiftPosition) || (m_haveOpenedDogs && (rightTalon.getOutputCurrent() > 10 && leftTalon.getOutputCurrent() > 10)) 
+                                    || (m_haveOpenedDogs && (System.currentTimeMillis() - m_backupTimestamp > 3000)))
                             {
                             	//closeDogs();
                             	//if(System.currentTimeMillis() - m_timestamp > 250)
@@ -550,13 +561,22 @@ public class ToteLifter
 	                                piControllerRight.reinit();
                             	}
                             }
-                            if(m_leftHeight > m_openDogsLiftPosition  || m_rightHeight > m_openDogsLiftPosition )
+                            else
                             {
-                                openDogs();
-                                m_haveOpenedDogs = true;
+                                if(m_leftHeight > m_openDogsLiftPosition  || m_rightHeight > m_openDogsLiftPosition )
+                                {
+                                    openDogs();
+                                    if(m_haveOpenedDogs == false)
+                                    {
+                                        m_backupTimestamp = System.currentTimeMillis();
+                                    }
+                                    m_haveOpenedDogs = true;
+                                }
                             }
-                            m_timeStamp = System.currentTimeMillis();
-                            System.out.println("                                         have opened dogs: "+m_haveOpenedDogs);
+                            m_useSpecialLiftRightOffset = false;
+                            //m_timeStamp = System.currentTimeMillis();
+                            System.out.println( m_backupTimestamp);
+                            //System.out.println("                                         have opened dogs: "+m_haveOpenedDogs);
                             break;
     
                         case "OpenDogs":
@@ -587,13 +607,13 @@ public class ToteLifter
                             {
                                 m_addSubstate = "GoToWaitLiftPosition";
                                 m_timeStamp = System.currentTimeMillis();
-                                piControllerLeft.setThrottle(0.25);
-                                piControllerRight.setThrottle(0.25);
+                                piControllerLeft.setThrottle(0.15);
+                                piControllerRight.setThrottle(0.15);
                             }
                             break;
     
                         case "GoToWaitLiftPosition":
-                            if(System.currentTimeMillis()- m_timeStamp > 750)
+                            if(System.currentTimeMillis()- m_timeStamp > 1000)
                             {
                                 piControllerLeft.setThrottle(1.0);
                                 piControllerRight.setThrottle(1.0);
