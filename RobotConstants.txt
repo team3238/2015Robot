@@ -28,13 +28,13 @@ pConstantLeft
 17
 
 iConstantLeft
-0.0025
+0
 
 pConstantRight
 17
 
 iConstantRight
-0.0025
+0
 
 accuracy threshold for lifter 
 0.006

@@ -94,6 +94,10 @@ public class Robot extends IterativeRobot
     
     long teleopStartTimestamp;
     
+    boolean m_grabberHasHit;
+    long m_nubbinTimePlaceholder;
+    double m_previousDistance;
+    
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
@@ -199,6 +203,9 @@ public class Robot extends IterativeRobot
         
         autonomous = new Autonomous(chassis);
         m_joystickOneYValue = 0;
+        m_grabberHasHit = false;
+        m_nubbinTimePlaceholder = 0;
+        m_previousDistance = 0.0;
     }
 
     public void setSubsystemConstants()
@@ -293,7 +300,7 @@ public class Robot extends IterativeRobot
         //grabber.zeroPots();
         //grabber.grabStepCan();
         grabber.reset();
-        autonomous.init(toteLifter);
+        autonomous.init(toteLifter, accelerometer);
         grabber.zeroPots();
     }
 
@@ -420,6 +427,8 @@ public class Robot extends IterativeRobot
         toteLifter.m_manuelControl = false;
         if(m_topHatValue == -1)
         {
+            m_grabberHasHit = false;
+            m_nubbinTimePlaceholder = System.currentTimeMillis();
             if(m_previousTopHatValue != -1)
             {
                 grabber.horizontalTalon.set(0);
@@ -461,8 +470,29 @@ public class Robot extends IterativeRobot
         	//grabber.horizontalTalon.set(0);
         	//grabber.verticalTalon.set(0);
         	//System.out.println(m_topHatValue);
+        	//if(Math.abs(grabber.m_horizontalPotDistance - m_previousDistance) < 0.002 &&
+        	//        System.currentTimeMillis() - m_nubbinTimePlaceholder > 100)
+        	double coefficient = 1.0;
+        	m_previousDistance = grabber.m_horizontalPotDistance;
+        	grabber.mapSensors();
+        	if(grabber.m_horizontalPotDistance < 1.0)
+        	{
+        	    coefficient = 0.7;
+        	    if(System.currentTimeMillis() - m_nubbinTimePlaceholder > 100)
+                {
+        	        if(grabber.horizontalTalon.getOutputCurrent() > 14)
+        	        {
+        	            m_grabberHasHit = true;
+        	        }
+                }
+        	}
+        	if(m_grabberHasHit == true)
+        	{
+        	    coefficient = 0.0;
+        	}
         	grabber.verticalTalon.set(1*Math.sin((m_topHatValue+90)*(Math.PI/180.0)));
-        	grabber.horizontalTalon.set(1*Math.cos((m_topHatValue+270)*(Math.PI/180.0)));
+        	grabber.horizontalTalon.set(coefficient*Math.cos((m_topHatValue+270)*(Math.PI/180.0)));
+        	
         }
         
     	double x = joystickZero.getX();
@@ -521,6 +551,21 @@ public class Robot extends IterativeRobot
 //        System.out.print("Horizontal: " + grabber.m_horizontalPotDistance);
 //        System.out.print(" Vertical: " + grabber.m_verticalPotDistance);
 //        System.out.println(" Sonar: " + grabber.m_sonarDistance);
+         // System.out.println("Y = " + Double.toString(accelerometer.getY()).substring(0, 7)  + 
+          //        "X = " + Double.toString(accelerometer.getX()).substring(0, 7) +
+          //        "Z = " + Double.toString(accelerometer.getZ()).substring(0, 7));
+        System.out.println("Y = " + Double.toString(accelerometer.getY()));
+        System.out.println("                   X = " + Double.toString(accelerometer.getX()));
+        System.out.println("                                     Z = " + Double.toString(accelerometer.getZ()));
+        /*
+        if (X < .01)
+        {
+            not on scoring platfrom
+        }
+        else
+        {
+            on scoring platform
+        }*/
     }
 
     public void testInit()

@@ -1,5 +1,7 @@
 package org.usfirst.frc.team3238.robot;
 
+import edu.wpi.first.wpilibj.BuiltInAccelerometer;
+
 
 /**
  *
@@ -15,6 +17,7 @@ public class Autonomous
     int m_timeDriveBack;
     int m_timeDriveAway;
     double m_moveBackSpeed;
+    int m_moveForwardTime;
 
     public static class AutoState
     {
@@ -33,11 +36,19 @@ public class Autonomous
      * be at the beginning of the autonomous
      * 
      */
-    void init(ToteLifter toteLifter)
+    void init(ToteLifter toteLifter, BuiltInAccelerometer accelerometer)
     {
         m_timeStamp = System.currentTimeMillis();
         m_autoState = AutoState.driveOffRamp;
         //toteLifter.approachHome();
+        if (accelerometer.getX() < .01)
+        {
+            m_moveForwardTime = 1500;
+        }
+        else
+        {
+            m_moveForwardTime = 500;
+        }
     }
 
     /**
@@ -68,7 +79,7 @@ public class Autonomous
         switch(m_autoState)
         {
             case (AutoState.driveOffRamp):
-                if(System.currentTimeMillis() - m_timeStamp < 500)
+                if(System.currentTimeMillis() - m_timeStamp < m_moveForwardTime)
                 {
                     chassis.setJoystickData(0, -0.5, 0);
                 }
@@ -82,6 +93,11 @@ public class Autonomous
             case (AutoState.pickUpCan):
                 grabber.grabStepCanAuto();
                 grabber.m_stepCanDirection = 1.0;
+                
+                //OPTIONAL 
+                //m_autoState = AutoState.done;
+                
+                //REGULAR
                 m_autoState = AutoState.waitToTranslate;
                 break;
                 

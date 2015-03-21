@@ -180,9 +180,46 @@ public class ToteLifter
         boolean leftDone = false;
         boolean rightDone = false;
         boolean positionReached = false;
-        double adjust = 0.0;
+        double leftAdjust = 0.0;
+        double rightAdjust = 0.0;
         mapPots();
-        adjust = (m_leftHeight-m_rightHeight)*15;
+        double adjust = (m_leftHeight-m_rightHeight)*15;
+        
+        /*
+        if(Math.abs(setpoint - m_leftHeight) > m_threshold)
+        {
+            if(m_leftHeight - m_rightHeight > 0.01)
+            {
+                leftTalon.set(0.5*(-piControllerLeft.getMotorValue(setpoint, m_leftHeight)+adjust));
+            }
+            else
+            {
+                leftTalon.set(-piControllerLeft.getMotorValue(setpoint, m_leftHeight)+adjust);
+            }
+        }
+        else
+        {
+            leftTalon.set(0);
+            leftDone = true;
+        }
+        
+        if(Math.abs(setpoint - m_rightHeight) > m_threshold)
+        {
+            if(m_rightHeight - m_leftHeight > 0.01)
+            {
+                rightTalon.set(0.5*(piControllerRight.getMotorValue(setpoint, m_rightHeight)+adjust));
+            }
+            else
+            {
+                rightTalon.set(piControllerRight.getMotorValue(setpoint, m_rightHeight)+adjust);
+            }
+        }
+        else
+        {
+            rightTalon.set(0);
+            rightDone = true;
+        }
+        */
         
         if(Math.abs(setpoint - m_leftHeight) > m_threshold)
         {
@@ -205,6 +242,41 @@ public class ToteLifter
             rightTalon.set(0);
             rightDone = true;
         }
+        
+        
+         
+        
+        /*
+        if(m_leftHeight > m_rightHeight)
+        {
+            leftAdjust = (m_leftHeight - m_rightHeight) * 15;
+        }
+        if(m_rightHeight > m_leftHeight)
+        {
+            rightAdjust = (m_leftHeight - m_rightHeight) * 15;
+        }
+        if(Math.abs(setpoint - m_leftHeight) > m_threshold)
+        {
+            leftTalon.set(-piControllerLeft.getMotorValue
+                    (setpoint, m_leftHeight)+leftAdjust);
+        }
+        else
+        {
+            leftTalon.set(0);
+            leftDone = true;
+        }
+        
+        if(Math.abs(setpoint - m_rightHeight) > m_threshold)
+        {
+            rightTalon.set(piControllerRight.getMotorValue
+                    (setpoint, m_rightHeight)+rightAdjust);
+        }
+        else
+        {
+            rightTalon.set(0);
+            rightDone = true;
+        }
+        */
         
         if(leftDone && rightDone)
         {
@@ -607,9 +679,9 @@ public class ToteLifter
         else
         {
             System.out.println("pos = "+m_manuelPosition);
-            if(m_manuelPosition > 0.6)
+            if(m_manuelPosition > 0.65)
             {
-                m_manuelPosition = 0.6;
+                m_manuelPosition = 0.65;
             }
             goToHeight(m_manuelPosition);
         }

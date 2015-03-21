@@ -393,12 +393,31 @@ public class Grabber
                     }
                     else
                     {
-                        m_canAutoHorizontalState = "waitForHook";
-                        m_horizontalExtended = true;
-                        horizontalTalon.set(0);
+                        m_canAutoHorizontalState = "keepOnExtending";
+                        m_timestamp = System.currentTimeMillis();
                     }
                 }
                 break;
+                
+            case "keepOnExtending":
+                if(System.currentTimeMillis() - m_timestamp < 200)
+                {
+                   horizontalTalon.set(-1.0); 
+                }
+                else
+                {
+                    //OPTIONAL AUTONOMOUS
+                    //reset();
+                    //horizontalTalon.set(0);
+                    //verticalTalon.set(0);
+                    
+                    //REGULAR AUTONOMOUS
+                    m_canAutoHorizontalState = "waitForHook";
+                    m_horizontalExtended = true;
+                    horizontalTalon.set(0); 
+                }
+                break;
+            
              
             case "waitForHook":
                 if(m_hooked)
